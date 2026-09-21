@@ -73,10 +73,9 @@ export async function readNote(ctx: TaskContext, key: string): Promise<StoredNot
  *
  * Both the Repost and the Edit path answer a miss the same way, because the
  * record carries the announced marker's TTL and a miss means the note is older
- * than AMPLIFIER_SEEN_TTL_DAYS. `action` is the verb for what the click was
- * trying to do, such as "repost".
+ * than AMPLIFIER_SEEN_TTL_DAYS. `action` is the verb for the click that missed.
  */
-export function noStoredNoteMessage(action: string, ttlSeconds: number): string {
+export function noStoredNoteMessage(action: "repost" | "edit", ttlSeconds: number): string {
   return (
     `Amplifier has no stored text for this note, so it cannot ${action} it. A note is kept ` +
     `for ${ttlSeconds / SECONDS_PER_DAY} days, so this one has probably expired.`
