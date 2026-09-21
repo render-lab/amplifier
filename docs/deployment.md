@@ -232,6 +232,10 @@ The Dashboard route is the same task from the Workflow service's **Tasks** tab, 
 
 `dryRun: true` prints the note after `[dry run] would post:` in the run's logs and writes no marker, so the real run still has the post to announce.
 
+To announce the post a Notion launch page names, open the page, copy its `Typefully` property,
+and pass that share URL as `url`. `amplifier.announcePost` matches the share URL as well as the
+platform permalinks.
+
 Only the newest 50 published drafts are searched, so a post from weeks ago needs its `draftId`.
 
 #### A whole window
@@ -291,6 +295,9 @@ The manifest requests `chat:write`, `reactions:write`, `users:read`, `users:read
 `users:read.email` alongside `users:read`. Drop all three if you only want the announce path. To change the app later, edit the file and paste it into **App Manifest** on the
 app's settings page. A scope change requires a reinstall. Check the Bot User OAuth Token
 afterwards and update `SLACK_BOT_TOKEN` if it changed.
+
+The manifest cannot carry the app icon. Upload `assets/bullhorn.png` under **Basic
+Information > Display Information** after creating the app.
 
 The two URLs in the manifest point at the `amplifier-webhook` receiver, which does not
 exist until the Blueprint is applied. Deployment step 6 fills them in.

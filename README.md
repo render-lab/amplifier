@@ -73,13 +73,15 @@ Please like/share our new customer story for OpenAI
 [ Repost to #amplify-wider ] [ Edit ]
 ```
 
-When the summary call fails, the note still goes out. The parent opens with `AMPLIFIER_CALL_TO_ACTION`, names the reason, and quotes the draft preview.
+The lead line comes from the prompt in `prompts/post-summary.md`. When the summary call fails, the note still goes out. The parent opens with `AMPLIFIER_CALL_TO_ACTION`, names the reason, and quotes the draft preview.
 
 The announced marker is written as soon as the parent is delivered, not after the last reply. A failed reply leaves the thread missing a link, which is logged. The alternative is a later run posting a second parent.
 
 Dedupe is per draft, not per note, so a LinkedIn post that arrives after its Twitter twin was announced still gets its own note.
 
 Delivery is at least once. The announced marker is written after Slack accepts the parent, so a run that dies in the gap between the two loses its lock within 5 minutes and the next run posts the same note again. The design accepts a duplicate note so that no note is lost.
+
+Every network call runs as a Render Tasks task, with its own retry policy. [tasks.md](tasks.md) lists which task comes from which package, and which ones amplifier defines itself.
 
 ## Local development
 
