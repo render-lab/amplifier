@@ -19,7 +19,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "check": "pnpm format:check && pnpm typecheck && pnpm test"
+    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "@hono/node-server": "2.1.1",

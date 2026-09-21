@@ -1,5 +1,5 @@
-# Runs `pnpm check` — Prettier, both tsconfigs, and the vitest suite — on every
-# push to main and every pull request.
+# Runs `pnpm check` — Prettier, both tsconfigs, the vitest suite and the build —
+# on every push to main and every pull request.
 #
 # No secrets are needed. The tests replace Typefully, Anthropic, Slack, and Key
 # Value with fakes from test/support, so the suite runs offline.
