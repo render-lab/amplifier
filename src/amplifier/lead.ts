@@ -1,5 +1,5 @@
 import type { PostMessageInput } from "@render-lab/tasks-slack";
-import { section, sectionMrkdwn, THREAD_MARKER } from "./template.js";
+import { section, sectionMrkdwn, THREAD_MARKER, THREAD_MARKER_PATTERN } from "./template.js";
 
 /** The failed-summary line `renderParent` adds, which a person's own lead replaces. */
 const FAILURE_LINE = /^_\(Summarization LLM call failed:.*\)_$/;
@@ -25,7 +25,7 @@ export function leadOf(message: PostMessageInput): string | undefined {
   const text = sectionText(message, index);
   if (text === undefined) return undefined;
   const first = text.split("\n")[0] ?? "";
-  const lead = first.endsWith(THREAD_MARKER) ? first.slice(0, -THREAD_MARKER.length) : first;
+  const lead = first.replace(THREAD_MARKER_PATTERN, "");
   return lead === "" ? undefined : lead;
 }
 
@@ -43,10 +43,14 @@ export function withLead(message: PostMessageInput, lead: string): PostMessageIn
   if (index === -1 || text === undefined) return null;
 
   const lines = text.split("\n");
-  const marker = (lines[0] ?? "").endsWith(THREAD_MARKER) ? THREAD_MARKER : "";
+  const marker = THREAD_MARKER_PATTERN.test(lines[0] ?? "") ? THREAD_MARKER : "";
   const rest = lines.slice(1).filter((line) => !FAILURE_LINE.test(line));
 
+  // The submitted lead can still end in a marker, from a modal opened before
+  // `leadOf` stripped the shortcode form. Strip it rather than write it twice.
+  const written = lead.replace(THREAD_MARKER_PATTERN, "");
+
   const blocks = [...(message.blocks ?? [])];
-  blocks[index] = section([`${lead}${marker}`, ...rest].join("\n"));
-  return { ...message, text: lead, blocks };
+  blocks[index] = section([`${written}${marker}`, ...rest].join("\n"));
+  return { ...message, text: written, blocks };
 }

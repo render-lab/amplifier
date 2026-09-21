@@ -18,6 +18,15 @@ export const EDIT_ACTION_ID = "amplifier_edit";
 /** Marks the parent of a thread whose links are replies. */
 export const THREAD_MARKER = " 🧵";
 
+/**
+ * The marker at the end of a lead line, in either form Slack uses.
+ *
+ * A note is posted with the emoji, and Slack echoes it back in an interactivity
+ * payload as `:thread:`. Anything reading a lead line back out of a note has to
+ * match both, or an edit re-appends a marker the line already carries.
+ */
+export const THREAD_MARKER_PATTERN = /\s*(?:🧵|:thread:)$/u;
+
 export interface RenderNoteOptions {
   /** Slack channel to post to. Requires SLACK_BOT_TOKEN to be honored. */
   channel?: string;

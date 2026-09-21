@@ -16,6 +16,17 @@ function parent(): PostMessageInput {
   };
 }
 
+/** The same parent as Slack echoes it back, with the marker as a shortcode. */
+function echoedParent(): PostMessageInput {
+  return {
+    text: "Old summary",
+    blocks: [
+      section("Old summary :thread:\n\n_X had not published yet, so there is no link for it._"),
+      repostBlock("amplify-queue", "amplifier:note:1"),
+    ],
+  };
+}
+
 /** A flat note whose summary failed, the shape `renderFlatNote` builds. */
 function fallback(): PostMessageInput {
   return {
@@ -35,6 +46,10 @@ describe("leadOf", () => {
 
   it("reads the lead line of a note whose summary failed", () => {
     expect(leadOf(fallback())).toBe("New Render social post!");
+  });
+
+  it("strips the marker Slack echoed back as a shortcode", () => {
+    expect(leadOf(echoedParent())).toBe("Old summary");
   });
 
   it("has no lead for a message with no section block", () => {
@@ -68,6 +83,27 @@ describe("withLead", () => {
 
     expect(edited?.blocks?.[0]).toEqual(
       section("Shifra's title\n\n> preview\n\n<https://x.com/1|X>"),
+    );
+  });
+
+  it("writes one marker when the submitted lead still carries the shortcode", () => {
+    const edited = withLead(parent(), "Shifra's title :thread:");
+
+    expect(edited?.blocks?.[0]).toEqual(
+      section(
+        `Shifra's title${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
+      ),
+    );
+    expect(edited?.text).toBe("Shifra's title");
+  });
+
+  it("keeps the marker when the stored line carries the shortcode", () => {
+    const edited = withLead(echoedParent(), "Shifra's title");
+
+    expect(edited?.blocks?.[0]).toEqual(
+      section(
+        `Shifra's title${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
+      ),
     );
   });
 
