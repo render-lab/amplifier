@@ -4,7 +4,7 @@ Amplifier automates the process of sharing new LinkedIn and Twitter posts with t
 
 It reads published drafts from Typefully, which is where the Render Twitter and LinkedIn accounts are scheduled. A post sent to both platforms produces one Slack thread, with a link per platform as a reply. Anyone in the channel can click Repost on that thread to post it again in a second channel, as themselves.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Ho1yShif/amplifier)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/render-lab/amplifier)
 
 The button applies `render.yaml`, which covers the webhook receiver, the Key Value instance,
 and the env groups. It does not create the Workflow service, because Blueprints do not support
