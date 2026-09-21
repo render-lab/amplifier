@@ -1,5 +1,7 @@
 # Amplifier
 
+[![CI](https://github.com/render-lab/amplifier/actions/workflows/ci.yml/badge.svg)](https://github.com/render-lab/amplifier/actions/workflows/ci.yml)
+
 Amplifier automates the process of sharing new LinkedIn and Twitter posts with the Render team. Whenever a post goes live on Twitter and/or LinkedIn, Amplifier sends a Slack note to the `#amplify` channel.
 
 It reads published drafts from Typefully, which is where the Render Twitter and LinkedIn accounts are scheduled. A post sent to both platforms produces one Slack thread, with a link per platform as a reply. Anyone in the channel can click Repost on that thread to post it again in a second channel, as themselves.
@@ -81,7 +83,7 @@ Dedupe is per draft, not per note, so a LinkedIn post that arrives after its Twi
 
 Delivery is at least once. The announced marker is written after Slack accepts the parent, so a run that dies in the gap between the two loses its lock within 5 minutes and the next run posts the same note again. The design accepts a duplicate note so that no note is lost.
 
-Every network call runs as a Render Tasks task, with its own retry policy. [tasks.md](tasks.md) lists which task comes from which package, and which ones amplifier defines itself.
+Every network call runs as a Render Tasks task, with its own retry policy. [docs/tasks.md](docs/tasks.md) lists which task comes from which package, and which ones amplifier defines itself.
 
 ## Local development
 
@@ -412,6 +414,11 @@ The table above covers the Workflow service. These variables belong to the `ampl
 | `SLACK_BOT_TOKEN`          | —                     | —     | Required for the Edit button. The receiver opens the edit box itself, on a `trigger_id` that expires in three seconds.                            |
 | `AMPLIFIER_PUBLIC_URL`     | `RENDER_EXTERNAL_URL` | —     | The receiver's own base URL, used to build the OAuth redirect. Only needed locally.                                                               |
 | `PORT`                     | `3000`                | —     | Render sets this. Only needed to run the receiver locally.                                                                                        |
+
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) has the checks to run before pushing and the commit
+conventions.
 
 ## License
 
