@@ -18,7 +18,7 @@ export interface PostQuery {
  * share URL, because the link on a Notion launch page is the share URL — the
  * post is scheduled there before any permalink exists.
  */
-export function matchPost(posts: PublishedPost[], query: PostQuery): PublishedPost | undefined {
+function matchPost(posts: PublishedPost[], query: PostQuery): PublishedPost | undefined {
   if (query.draftId !== undefined) {
     return posts.find((p) => p.draftId === query.draftId);
   }
@@ -26,7 +26,7 @@ export function matchPost(posts: PublishedPost[], query: PostQuery): PublishedPo
 }
 
 /** Why nothing matched, for the throw that ends a manual run. */
-export function noMatchMessage(posts: PublishedPost[], query: PostQuery): string {
+function noMatchMessage(posts: PublishedPost[], query: PostQuery): string {
   const target = query.draftId !== undefined ? `draft ${query.draftId}` : `${query.url}`;
   return (
     `No published draft matches ${target} among the newest ${posts.length} Typefully ` +

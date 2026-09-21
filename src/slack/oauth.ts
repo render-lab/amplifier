@@ -7,7 +7,7 @@ export function userTokenKey(userId: string): string {
 }
 
 /** The only scope a stakeholder grants: post as themselves. */
-export const USER_SCOPE = "chat:write";
+const USER_SCOPE = "chat:write";
 
 /** Path the Slack app redirects to after a person authorizes. */
 export const CALLBACK_PATH = "/slack/oauth/callback";
