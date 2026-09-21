@@ -1,4 +1,4 @@
-# Slack app definition for amplifier. See the README for how to apply it.
+# Slack app definition for amplifier. See docs/deployment.md for how to apply it.
 #
 # The two URLs below point at the amplifier-webhook receiver, whose hostname does
 # not exist until the Blueprint is applied. Replace amplifier-webhook.onrender.com

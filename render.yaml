@@ -11,8 +11,8 @@
 # Workflow service, add the amplifier-kv internal connection string to that group
 # as REDIS_URL, then register the receiver's public URL in Typefully under
 # Settings > API and copy the signing secret back into TYPEFULLY_WEBHOOK_SECRET.
-# The Notion integration comes last, and needs no receiver route. The README's
-# Deployment section has the numbered steps.
+# The Notion integration comes last, and needs no receiver route.
+# docs/deployment.md has the numbered steps.
 projects:
   - name: amplifier
     environments:
@@ -47,7 +47,7 @@ projects:
           # Both groups are created by hand, with their values, before this
           # Blueprint is applied. `sync: false` is ignored inside an env var
           # group, so a group cannot prompt for a value and cannot carry a secret
-          # from this file. README, Deployment step 4, lists the keys to add.
+          # from this file. docs/deployment.md, step 4, lists the keys to add.
           #
           # DISPATCH_TOKEN is deliberately absent. It gates POST /tasks/:task,
           # which nothing in amplifier uses, and leaving it unset makes that route
@@ -65,7 +65,7 @@ projects:
           # the announce path starts the repost reminder's run through the Render
           # API. A key is workspace-wide and a slug is deploy-specific, and
           # `sync: false` is ignored inside an env var group, so both are added
-          # by hand. README, Deployment step 4, lists them.
+          # by hand. docs/deployment.md, step 4, lists them.
           - name: amplifier-workflow
             envVars:
               - key: AMPLIFIER_SUMMARY_MODEL
@@ -79,7 +79,7 @@ projects:
               # NOTION_DATABASE_ID is deliberately absent. It names one
               # workspace's database, and a literal here would overwrite a
               # Dashboard value on every Blueprint sync, so it is added to this
-              # group by hand alongside NOTION_TOKEN. README, Deployment step 4,
+              # group by hand alongside NOTION_TOKEN. docs/deployment.md, step 4,
               # lists it.
               - key: NOTION_TYPEFULLY_PROPERTY
                 value: Typefully

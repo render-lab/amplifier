@@ -61,8 +61,8 @@ export function notionPort(
         throw new Error(
           "NOTION_TOKEN is required for the notion tasks. Create an integration at " +
             "notion.so/profile/integrations, give it the user email capability, and grant it " +
-            "the launch database. The README's Notion section has the steps for an internal " +
-            "and an OAuth integration.",
+            "the launch database. The Notion section of docs/deployment.md has the steps " +
+            "for an internal and an OAuth integration.",
         );
       }
       return { authorization: `Bearer ${token}`, "notion-version": NOTION_VERSION };
