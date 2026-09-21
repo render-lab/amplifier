@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: 2.1.1
-        version: 2.1.1(hono@4.13.5)
+        version: 2.1.1(hono@4.13.8)
       '@render-lab/tasks-core':
         specifier: 0.3.0
         version: 0.3.0(@renderinc/sdk@1.0.0)
@@ -30,8 +30,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       hono:
-        specifier: 4.13.5
-        version: 4.13.5
+        specifier: 4.13.8
+        version: 4.13.8
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -839,8 +839,8 @@ packages:
     resolution: {integrity: sha512-iZyKG96/JwPz1N55vj2Ie2vXbhu440zfUfJvSwEqEbeLluk7NnapfGqa7LH0mOsnDxTF85Mx8/dyR6HfqcbmbQ==}
     engines: {node: '>=20'}
 
-  hono@4.13.5:
-    resolution: {integrity: sha512-O6+/eCYRkzzzy0rPWwKLiGBR1nFuUPZynnwjxN1MBA62NNqbT0wQEzQyK2gSO5yDIDB336sXQleAhOHrzlYyKw==}
+  hono@4.13.8:
+    resolution: {integrity: sha512-/Gng7NfoykZl2pjukW5Z6+8Yxm3BPRf86GTbQnt0SbySkvax4fyL4H3HhY1cCpBGmiW9XDRFzRV+CXK2W8QudQ==}
     engines: {node: '>=16.9.0'}
 
   hookified@1.15.1:
@@ -1449,9 +1449,9 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@hono/node-server@2.1.1(hono@4.13.5)':
+  '@hono/node-server@2.1.1(hono@4.13.8)':
     dependencies:
-      hono: 4.13.5
+      hono: 4.13.8
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -1552,9 +1552,9 @@ snapshots:
 
   '@render-lab/triggers@0.2.0':
     dependencies:
-      '@hono/node-server': 2.1.1(hono@4.13.5)
+      '@hono/node-server': 2.1.1(hono@4.13.8)
       '@renderinc/sdk': 1.0.0
-      hono: 4.13.5
+      hono: 4.13.8
     transitivePeerDependencies:
       - '@node-rs/xxhash'
       - '@opentelemetry/api'
@@ -1994,7 +1994,7 @@ snapshots:
     dependencies:
       hookified: 1.15.1
 
-  hono@4.13.5: {}
+  hono@4.13.8: {}
 
   hookified@1.15.1: {}
 
