@@ -41,7 +41,7 @@
     "@render-lab/tasks-slack": "0.3.0",
     "@render-lab/triggers": "0.2.0",
     "@renderinc/sdk": "1.0.0",
-    "hono": "4.13.5"
+    "hono": "4.13.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
