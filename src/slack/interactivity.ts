@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import type { SlackBlock } from "@render-lab/tasks-slack";
 import { isFresh, timingSafeEquals } from "../http/signature.js";
-import { nonEmptyString } from "../json.js";
+import { nestedId, nonEmptyString, record } from "../json.js";
 import { leadOf } from "../amplifier/lead.js";
 import { EDIT_ACTION_ID, REPOST_ACTION_ID } from "../amplifier/template.js";
 import {
@@ -47,6 +47,27 @@ export function verifySlackSignature(
   return isFresh("Slack", timestamp, nowMs, TOLERANCE_MS);
 }
 
+/** An interactivity payload and the button inside it that was clicked. */
+interface BlockAction {
+  payload: Record<string, unknown>;
+  action: Record<string, unknown>;
+}
+
+/**
+ * The payload and its first action, when that action carries `actionId`.
+ *
+ * Anything else maps to null, so another interactive element added to the app
+ * later neither starts a repost nor opens the edit modal.
+ */
+function blockAction(payload: unknown, actionId: string): BlockAction | null {
+  const p = record(payload);
+  if (!p) return null;
+  const actions = Array.isArray(p["actions"]) ? p["actions"] : [];
+  const action = record(actions[0]);
+  if (!action || action["action_id"] !== actionId) return null;
+  return { payload: p, action };
+}
+
 /** What a Repost click tells the receiver. */
 export interface RepostClick {
   /** Channel the clicked note is in. */
@@ -64,25 +85,20 @@ export interface RepostClick {
 /**
  * Read a Repost click out of an interactivity payload, or null.
  *
- * Anything whose first action is not the Repost button maps to null, so another
- * interactive element added to the app later does not start a repost.
- *
  * `messageTs` is the clicked message's `thread_ts`, falling back to its own
  * `ts`. The repost reminder is a reply carrying its own Repost button, and a
  * click on it is about the note at the top of the thread: that is the message
  * the reaction, the "Reposted by" reply and the reposted marker belong on.
  */
 export function parseRepostClick(payload: unknown): RepostClick | null {
-  if (typeof payload !== "object" || payload === null) return null;
-  const p = payload as Record<string, unknown>;
-  const actions = Array.isArray(p["actions"]) ? p["actions"] : [];
-  const action = actions[0] as Record<string, unknown> | undefined;
-  if (!action || action["action_id"] !== REPOST_ACTION_ID) return null;
+  const clicked = blockAction(payload, REPOST_ACTION_ID);
+  if (!clicked) return null;
+  const { payload: p, action } = clicked;
 
-  const channel = nonEmptyString((p["channel"] as Record<string, unknown> | undefined)?.["id"]);
-  const message = p["message"] as Record<string, unknown> | undefined;
+  const channel = nestedId(p, "channel");
+  const message = record(p["message"]);
   const messageTs = nonEmptyString(message?.["thread_ts"]) ?? nonEmptyString(message?.["ts"]);
-  const userId = nonEmptyString((p["user"] as Record<string, unknown> | undefined)?.["id"]);
+  const userId = nestedId(p, "user");
   const noteKey = nonEmptyString(action["value"]);
   const responseUrl = nonEmptyString(p["response_url"]);
   if (!channel || !messageTs || !userId || !noteKey || !responseUrl) {
@@ -115,14 +131,12 @@ export interface EditClick {
  * `renderParent` sets to the lead line.
  */
 export function parseEditClick(payload: unknown): EditClick | null {
-  if (typeof payload !== "object" || payload === null) return null;
-  const p = payload as Record<string, unknown>;
-  const actions = Array.isArray(p["actions"]) ? p["actions"] : [];
-  const action = actions[0] as Record<string, unknown> | undefined;
-  if (!action || action["action_id"] !== EDIT_ACTION_ID) return null;
+  const clicked = blockAction(payload, EDIT_ACTION_ID);
+  if (!clicked) return null;
+  const { payload: p, action } = clicked;
 
-  const channel = nonEmptyString((p["channel"] as Record<string, unknown> | undefined)?.["id"]);
-  const message = p["message"] as Record<string, unknown> | undefined;
+  const channel = nestedId(p, "channel");
+  const message = record(p["message"]);
   const messageTs = nonEmptyString(message?.["ts"]);
   const noteKey = nonEmptyString(action["value"]);
   const triggerId = nonEmptyString(p["trigger_id"]);
@@ -148,11 +162,10 @@ export interface EditSubmit {
 
 /** Read a submitted edit modal, or null. The note comes out of `private_metadata`. */
 export function parseEditSubmit(payload: unknown): EditSubmit | null {
-  if (typeof payload !== "object" || payload === null) return null;
-  const p = payload as Record<string, unknown>;
-  if (p["type"] !== "view_submission") return null;
+  const p = record(payload);
+  if (!p || p["type"] !== "view_submission") return null;
 
-  const view = p["view"] as Record<string, unknown> | undefined;
+  const view = record(p["view"]);
   if (view?.["callback_id"] !== EDIT_CALLBACK_ID) return null;
 
   const meta = decodeMeta(view["private_metadata"]);
@@ -161,10 +174,8 @@ export function parseEditSubmit(payload: unknown): EditSubmit | null {
     return null;
   }
 
-  const state = view["state"] as Record<string, unknown> | undefined;
-  const values = state?.["values"] as Record<string, unknown> | undefined;
-  const block = values?.[LEAD_BLOCK_ID] as Record<string, unknown> | undefined;
-  const input = block?.[LEAD_ACTION_ID] as { value?: unknown } | undefined;
-  const lead = input?.value;
+  const values = record(record(view["state"])?.["values"]);
+  const block = record(values?.[LEAD_BLOCK_ID]);
+  const lead = record(block?.[LEAD_ACTION_ID])?.["value"];
   return { meta, lead: typeof lead === "string" ? lead : "" };
 }

@@ -8,7 +8,7 @@ import {
   renderChildren,
   renderFlatNote,
   renderParent,
-  withoutRepostButton,
+  withoutNoteActions,
 } from "../src/amplifier/template.js";
 import type { PostGroup } from "../src/amplifier/group.js";
 import { group } from "./support/fixtures.js";
@@ -296,14 +296,14 @@ describe("renderFlatNote", () => {
   });
 });
 
-describe("withoutRepostButton", () => {
+describe("withoutNoteActions", () => {
   it("drops the actions block and keeps the sections", () => {
     const parent = renderParent(crossPost, {
       summary: "Faster.",
       repostChannel: "amplify-wider",
       noteKey: "k",
     });
-    const stripped = withoutRepostButton(parent);
+    const stripped = withoutNoteActions(parent);
     expect(actionsBlock(stripped.blocks)).toBeUndefined();
     expect(sectionText(stripped.blocks)).toBe("Faster. 🧵");
   });
@@ -314,13 +314,13 @@ describe("withoutRepostButton", () => {
       repostChannel: "amplify-wider",
       noteKey: "k",
     });
-    const stripped = withoutRepostButton(flat);
+    const stripped = withoutNoteActions(flat);
     expect(actionsBlock(stripped.blocks)).toBeUndefined();
     expect(sectionText(stripped.blocks)).toContain("Faster.");
   });
 
   it("leaves a message with no blocks alone", () => {
     const reply = { text: "X post", markdown: "<https://x.com/render/status/1|X post>" };
-    expect(withoutRepostButton(reply)).toEqual(reply);
+    expect(withoutNoteActions(reply)).toEqual(reply);
   });
 });

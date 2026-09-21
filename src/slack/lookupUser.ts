@@ -1,7 +1,7 @@
 import { task, type TaskContext } from "@renderinc/sdk/workflows";
 import { SLACK_RETRY } from "@render-lab/tasks-slack";
-import { nonEmptyString } from "../json.js";
-import { callSlack, type SlackApiResponse } from "./api.js";
+import { nestedId } from "../json.js";
+import { callSlack } from "./api.js";
 
 export interface LookupUserInput {
   /** The address to match a Slack account on, usually from a Notion people property. */
@@ -18,16 +18,6 @@ export type LookupUserResult = { userId: string } | { error: string };
 
 /** An opened DM, or the Slack error code that says why it did not open. */
 export type OpenDmResult = { channelId: string } | { error: string };
-
-/** Whether a lookup or an open produced an id. */
-export function isResolved<T extends object>(result: T | { error: string }): result is T {
-  return !("error" in result);
-}
-
-/** The `id` on a nested object in a reply, such as `user` or `channel`. */
-function nestedId(body: SlackApiResponse, field: string): string | undefined {
-  return nonEmptyString((body[field] as Record<string, unknown> | undefined)?.["id"]);
-}
 
 /**
  * Raw implementation of amplifier.lookupUser.

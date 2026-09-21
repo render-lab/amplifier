@@ -1,8 +1,7 @@
 import { task, type TaskContext } from "@renderinc/sdk/workflows";
 import { deleteKeys, get as kvGet } from "@render-lab/tasks-render-kv";
-import { loadConfig, MAX_LIMIT } from "../config.js";
-import { listPublished } from "../typefully/listPublished.js";
-import { matchPost, noMatchMessage } from "../typefully/match.js";
+import { loadConfig } from "../config.js";
+import { findPost } from "../typefully/match.js";
 import { announceGroups, type NoteResult } from "./announce.js";
 import { groupPosts } from "./group.js";
 import { runToken, seenKey } from "./seen.js";
@@ -45,16 +44,7 @@ export async function announcePostImpl(
     env,
   );
 
-  // Fifty is the widest Typefully allows, and this task runs once, by hand.
-  const { posts } = await ctx.run(listPublished, {
-    ...(config.socialSetId ? { socialSetId: config.socialSetId } : {}),
-    limit: MAX_LIMIT,
-  });
-
-  const post = matchPost(posts, input);
-  if (!post) {
-    throw new Error(noMatchMessage(posts, input));
-  }
+  const post = await findPost(ctx, input, config.socialSetId);
 
   const key = seenKey(post.draftId);
   const { value } = await ctx.run(kvGet, { key });

@@ -3,6 +3,7 @@ import { DEFAULT_REMINDER_TEXT } from "./amplifier/remindTemplate.js";
 import { MAX_REMINDER_MINUTES, MAX_SETTLE_MINUTES } from "./amplifier/retry.js";
 import { DEFAULT_CALL_TO_ACTION } from "./amplifier/template.js";
 import { DEFAULT_SUMMARY_MODEL } from "./summary/model.js";
+import { SECONDS_PER_DAY } from "./time.js";
 
 /** Overrides accepted per run; anything omitted falls back to env, then defaults. */
 export interface CheckPostsInput {
@@ -122,34 +123,32 @@ export function loadConfig(
   const notionDatabaseId = optional(env.NOTION_DATABASE_ID);
   const seenTtlDays = whole(
     "AMPLIFIER_SEEN_TTL_DAYS",
-    input.seenTtlDays,
     env.AMPLIFIER_SEEN_TTL_DAYS,
-    {
-      fallback: 30,
-      min: 1,
-    },
+    { fallback: 30, min: 1 },
+    input.seenTtlDays,
   );
 
   return {
     ...(socialSetId ? { socialSetId } : {}),
-    limit: whole("AMPLIFIER_LIMIT", input.limit, env.AMPLIFIER_LIMIT, {
-      fallback: DEFAULT_LIMIT,
-      min: 1,
-      max: MAX_LIMIT,
-    }),
+    limit: whole(
+      "AMPLIFIER_LIMIT",
+      env.AMPLIFIER_LIMIT,
+      { fallback: DEFAULT_LIMIT, min: 1, max: MAX_LIMIT },
+      input.limit,
+    ),
     lookbackMinutes: whole(
       "AMPLIFIER_LOOKBACK_MINUTES",
-      input.lookbackMinutes,
       env.AMPLIFIER_LOOKBACK_MINUTES,
       { fallback: 90, min: 1 },
+      input.lookbackMinutes,
     ),
     // A group window of 0 groups only drafts published at the same instant.
     // Set it to 0 to turn grouping off.
     groupWindowMinutes: whole(
       "AMPLIFIER_GROUP_WINDOW_MINUTES",
-      input.groupWindowMinutes,
       env.AMPLIFIER_GROUP_WINDOW_MINUTES,
       { fallback: 10, min: 0 },
+      input.groupWindowMinutes,
     ),
     // A settle window of 0 announces whatever links exist on the first attempt.
     // Set it to 0 to turn settling off. The maximum is the retry budget on
@@ -157,27 +156,23 @@ export function loadConfig(
     // and the event produces no note at all.
     settleMinutes: whole(
       "AMPLIFIER_SETTLE_MINUTES",
-      input.settleMinutes,
       env.AMPLIFIER_SETTLE_MINUTES,
       { fallback: 10, min: 0, max: MAX_SETTLE_MINUTES },
+      input.settleMinutes,
     ),
-    seenTtlSeconds: seenTtlDays * 86_400,
+    seenTtlSeconds: seenTtlDays * SECONDS_PER_DAY,
     ...(slackChannel ? { slackChannel } : {}),
-    callToAction: text(input.callToAction, env.AMPLIFIER_CALL_TO_ACTION, DEFAULT_CALL_TO_ACTION),
-    summaryModel: text(input.summaryModel, env.AMPLIFIER_SUMMARY_MODEL, DEFAULT_SUMMARY_MODEL),
+    callToAction: text(env.AMPLIFIER_CALL_TO_ACTION, DEFAULT_CALL_TO_ACTION, input.callToAction),
+    summaryModel: text(env.AMPLIFIER_SUMMARY_MODEL, DEFAULT_SUMMARY_MODEL, input.summaryModel),
     dryRun: input.dryRun ?? env.DRY_RUN === "true",
     ...(repostChannel ? { repostChannel } : {}),
-    repostEmoji: text(undefined, env.AMPLIFIER_REPOST_EMOJI, DEFAULT_REPOST_EMOJI),
+    repostEmoji: text(env.AMPLIFIER_REPOST_EMOJI, DEFAULT_REPOST_EMOJI),
     ...(slackClientId ? { slackClientId } : {}),
     ...(slackClientSecret ? { slackClientSecret } : {}),
-    notionTypefullyProperty: text(
-      undefined,
-      env.NOTION_TYPEFULLY_PROPERTY,
-      DEFAULT_TYPEFULLY_PROPERTY,
-    ),
-    notionOwnersProperty: text(undefined, env.NOTION_OWNERS_PROPERTY, DEFAULT_OWNERS_PROPERTY),
+    notionTypefullyProperty: text(env.NOTION_TYPEFULLY_PROPERTY, DEFAULT_TYPEFULLY_PROPERTY),
+    notionOwnersProperty: text(env.NOTION_OWNERS_PROPERTY, DEFAULT_OWNERS_PROPERTY),
     ...(notionDatabaseId ? { notionDatabaseId } : {}),
-    pingAsk: text(undefined, env.AMPLIFIER_PING_ASK, DEFAULT_PING_ASK),
+    pingAsk: text(env.AMPLIFIER_PING_ASK, DEFAULT_PING_ASK),
     // On by default once Notion is configured, because an announcement whose
     // owners hear nothing is the thing this exists to fix. Both variables are
     // needed: the token reads the page and the database id finds it from the
@@ -191,13 +186,12 @@ export function loadConfig(
     // has usually been scrolled past. The maximum is the timeout on
     // amplifier.remindRepost, which spends the delay as a sleep, so a larger
     // value would kill the run before it checks anything.
-    reminderMinutes: whole(
-      "AMPLIFIER_REMINDER_MINUTES",
-      undefined,
-      env.AMPLIFIER_REMINDER_MINUTES,
-      { fallback: 30, min: 0, max: MAX_REMINDER_MINUTES },
-    ),
-    reminderText: text(undefined, env.AMPLIFIER_REMINDER_TEXT, DEFAULT_REMINDER_TEXT),
+    reminderMinutes: whole("AMPLIFIER_REMINDER_MINUTES", env.AMPLIFIER_REMINDER_MINUTES, {
+      fallback: 30,
+      min: 0,
+      max: MAX_REMINDER_MINUTES,
+    }),
+    reminderText: text(env.AMPLIFIER_REMINDER_TEXT, DEFAULT_REMINDER_TEXT),
   };
 }
 
@@ -240,11 +234,7 @@ function optional(envValue: string | undefined): string | undefined {
  * default", matching `whole`: a declared-but-empty variable is the normal state
  * of a Render env var nobody filled in.
  */
-function text(
-  override: string | undefined,
-  envValue: string | undefined,
-  fallback: string,
-): string {
+function text(envValue: string | undefined, fallback: string, override?: string): string {
   return override?.trim() || envValue?.trim() || fallback;
 }
 
@@ -260,9 +250,9 @@ function text(
  */
 function whole(
   name: string,
-  override: number | undefined,
   envValue: string | undefined,
   { fallback, min, max }: Bounds,
+  override?: number,
 ): number {
   if (override === undefined && (envValue === undefined || envValue.trim() === "")) {
     return fallback;

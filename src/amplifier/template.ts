@@ -107,6 +107,18 @@ export function section(text: string): SlackBlock {
 }
 
 /**
+ * A section block's mrkdwn, or undefined for any other block.
+ *
+ * `SlackBlock` is an index type in `@render-lab/tasks-slack` 0.3.0, so reading
+ * the nested `text.text` needs a cast. Everything that reads a posted note back
+ * out of its blocks goes through here, so the cast lives in one place.
+ */
+export function sectionMrkdwn(block: SlackBlock | undefined): string | undefined {
+  const text = (block as { text?: { text?: unknown } } | undefined)?.text?.text;
+  return typeof text === "string" ? text : undefined;
+}
+
+/**
  * The Repost button.
  *
  * `value` is the Key Value key of the stored note, so the receiver can hand the
@@ -152,7 +164,7 @@ export function noteActions(repostChannel: string, noteKey: string): SlackBlock 
 
 /** The body parts above the links: the summary alone, or the whole fallback. */
 function noteParts(group: PostGroup, opts: RenderNoteOptions, lead: string): string[] {
-  return opts.summary?.trim() ? [lead] : [...fallbackBlocks(group, opts, lead)];
+  return opts.summary?.trim() ? [lead] : fallbackBlocks(group, opts, lead);
 }
 
 /**
@@ -239,7 +251,7 @@ export function renderFlatNote(group: PostGroup, opts: RenderParentOptions = {})
  * A reposted thread carries neither button, so a repost can be neither
  * reposted nor edited.
  */
-export function withoutRepostButton(parent: PostMessageInput): PostMessageInput {
+export function withoutNoteActions(parent: PostMessageInput): PostMessageInput {
   if (!parent.blocks) return parent;
   return { ...parent, blocks: parent.blocks.filter((b) => b["type"] !== "actions") };
 }

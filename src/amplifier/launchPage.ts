@@ -1,10 +1,8 @@
 import type { TaskContext } from "@renderinc/sdk/workflows";
 import type { AmplifierConfig } from "../config.js";
-import { MAX_LIMIT } from "../config.js";
 import { findLaunches } from "../notion/findLaunches.js";
 import { readTypefullyUrl } from "../notion/launch.js";
-import { listPublished } from "../typefully/listPublished.js";
-import { matchPost, noMatchMessage, type PostQuery } from "../typefully/match.js";
+import { findPost, type PostQuery } from "../typefully/match.js";
 import type { PublishedPost } from "../typefully/types.js";
 
 /** The last path segment of a URL, with any query string and fragment dropped. */
@@ -56,15 +54,7 @@ export async function resolveLaunchPageId(
     );
   }
 
-  // Fifty is the widest Typefully allows, and this path runs once, by hand.
-  const { posts } = await ctx.run(listPublished, {
-    ...(config.socialSetId ? { socialSetId: config.socialSetId } : {}),
-    limit: MAX_LIMIT,
-  });
-  const post = matchPost(posts, query);
-  if (!post) {
-    throw new Error(noMatchMessage(posts, query));
-  }
+  const post = await findPost(ctx, query, config.socialSetId);
 
   const needles = launchNeedles(post);
   const { pages, truncated } = await ctx.run(findLaunches, {

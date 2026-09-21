@@ -1,3 +1,6 @@
+import type { TaskContext } from "@renderinc/sdk/workflows";
+import { MAX_LIMIT } from "../config.js";
+import { listPublished } from "./listPublished.js";
 import type { PublishedPost } from "./types.js";
 
 /** The two ways a human names one published post. */
@@ -30,4 +33,24 @@ export function noMatchMessage(posts: PublishedPost[], query: PostQuery): string
     `returned. The post may be older than those, or its permalink may not be on X or ` +
     `LinkedIn.`
   );
+}
+
+/**
+ * The published post a query names, or a throw saying why none matched.
+ *
+ * Pulls MAX_LIMIT drafts, because fifty is the widest Typefully allows and both
+ * callers are a manual run naming one post rather than a scheduled scan.
+ */
+export async function findPost(
+  ctx: TaskContext,
+  query: PostQuery,
+  socialSetId: string | undefined,
+): Promise<PublishedPost> {
+  const { posts } = await ctx.run(listPublished, {
+    ...(socialSetId ? { socialSetId } : {}),
+    limit: MAX_LIMIT,
+  });
+  const post = matchPost(posts, query);
+  if (!post) throw new Error(noMatchMessage(posts, query));
+  return post;
 }

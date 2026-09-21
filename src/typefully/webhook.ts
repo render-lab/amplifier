@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import type { WebhookAdapter, WebhookContext, WebhookRequest } from "@render-lab/triggers";
 import { isFresh, timingSafeEquals } from "../http/signature.js";
-import { nonEmptyString } from "../json.js";
+import { nonEmptyString, record } from "../json.js";
 
 /** The one event that can produce a note. */
 const PUBLISHED_EVENT = "draft.published";
@@ -23,17 +23,12 @@ const TOLERANCE_MS = 15 * 60_000;
 
 /** The `event` field of a `{ event, data }` envelope, or undefined. */
 function eventType(body: unknown): string | undefined {
-  if (typeof body !== "object" || body === null) return undefined;
-  const event = (body as { event?: unknown }).event;
-  return typeof event === "string" ? event : undefined;
+  return nonEmptyString(record(body)?.["event"]);
 }
 
 /** The draft id in the envelope's `data`, as a string, or undefined. */
 function draftId(body: unknown): string | undefined {
-  if (typeof body !== "object" || body === null) return undefined;
-  const data = (body as { data?: unknown }).data;
-  if (typeof data !== "object" || data === null) return undefined;
-  const id = (data as { id?: unknown }).id;
+  const id = record(record(body)?.["data"])?.["id"];
   if (typeof id === "number" && Number.isFinite(id)) return String(id);
   return nonEmptyString(id);
 }

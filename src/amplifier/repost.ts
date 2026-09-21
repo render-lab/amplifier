@@ -11,11 +11,12 @@ import {
 } from "../slack/oauth.js";
 import { postNote } from "../slack/postNote.js";
 import { respondEphemeral, type ResponseFetch } from "../slack/respond.js";
+import { postReplies } from "../slack/thread.js";
 import { claimNote, isRepostClaimed } from "./repostClaim.js";
 import { repostedKey } from "./reposted.js";
 import { releaseClaim, runToken } from "./seen.js";
-import { readNote } from "./storedNote.js";
-import { withoutRepostButton } from "./template.js";
+import { noStoredNoteMessage, readNote } from "./storedNote.js";
+import { withoutNoteActions } from "./template.js";
 import { REPOST_RETRY } from "./retry.js";
 
 export interface RepostInput {
@@ -105,15 +106,18 @@ export async function repostImpl(
     return { reposted: false, reason: "no-repost-channel" };
   }
 
+  /** The answer to a click on a note that already has its reposted marker. */
+  const alreadyReposted = async (): Promise<RepostResult> => {
+    await reply(`Somebody already reposted this note to #${repostChannel}.`);
+    return { reposted: false, reason: "already-reposted" };
+  };
+
   // Read before the user token, so a click on a note somebody already reposted
   // is answered with that and not with an authorize link for a repost that will
   // not happen. `claimNote` re-reads this marker under the lock, which is the
   // read that decides.
   const { value: reposted } = await ctx.run(kvGet, { key: repostedKey(input.noteKey) });
-  if (reposted !== null) {
-    await reply(`Somebody already reposted this note to #${repostChannel}.`);
-    return { reposted: false, reason: "already-reposted" };
-  }
+  if (reposted !== null) return alreadyReposted();
 
   const { value: userToken } = await ctx.run(kvGet, { key: userTokenKey(input.userId) });
   if (userToken === null) {
@@ -126,14 +130,12 @@ export async function repostImpl(
   const note = await readNote(ctx, input.noteKey);
   if (note === null) {
     await reply(
-      `Amplifier has no stored text for this note, so it cannot repost it. A note is ` +
-        `kept for ${config.seenTtlSeconds / 86_400} days, so this one has probably ` +
-        `expired. Copy the links across by hand.`,
+      `${noStoredNoteMessage("repost", config.seenTtlSeconds)} Copy the links across by hand.`,
     );
     return { reposted: false, reason: "no-note" };
   }
 
-  const parent = { ...withoutRepostButton(note.parent), channel: repostChannel };
+  const parent = { ...withoutNoteActions(note.parent), channel: repostChannel };
   const replies = note.replies.map((r) => ({ ...r, channel: repostChannel }));
 
   if (config.dryRun) {
@@ -147,11 +149,9 @@ export async function repostImpl(
   // dispatches, so nothing upstream collapses them.
   const outcome = await claimNote(ctx, input.noteKey, runToken());
   if (!isRepostClaimed(outcome)) {
-    if (outcome.reason === "reposted") {
-      // Written between the unlocked read above and the lock.
-      await reply(`Somebody already reposted this note to #${repostChannel}.`);
-      return { reposted: false, reason: "already-reposted" };
-    }
+    // "reposted" means the marker was written between the unlocked read above
+    // and the lock.
+    if (outcome.reason === "reposted") return alreadyReposted();
     await reply(
       `This note is being reposted to #${repostChannel} right now. Check the channel in a ` +
         `few minutes, and click again if nothing landed.`,
@@ -183,16 +183,12 @@ export async function repostImpl(
     return { reposted: false, reason: "not-in-channel" };
   }
 
-  // Sequential, because the order the links appear in the thread is part of the
-  // format. A failure is logged rather than thrown: the parent is already
-  // posted, so a retry would post the whole thread a second time.
-  for (const message of replies) {
-    try {
-      await ctx.run(postNote, { ...message, userToken, ...(threadTs ? { threadTs } : {}) });
-    } catch (err) {
-      console.error("[amplifier] A reposted thread is missing one of its links.", err);
-    }
-  }
+  await postReplies(
+    ctx,
+    replies.map((r) => ({ ...r, userToken })),
+    threadTs,
+    (err) => console.error("[amplifier] A reposted thread is missing one of its links.", err),
+  );
 
   await markSource(ctx, input, config.repostEmoji, config.seenTtlSeconds);
   await reply(`Reposted to #${repostChannel}.`);

@@ -5,7 +5,7 @@ import { respondEphemeral, type ResponseFetch } from "../slack/respond.js";
 import { updateNote } from "../slack/updateNote.js";
 import { withLead } from "./lead.js";
 import { repostedKey } from "./reposted.js";
-import { readNote, storeNote } from "./storedNote.js";
+import { noStoredNoteMessage, readNote, storeNote } from "./storedNote.js";
 import { EDIT_RETRY } from "./retry.js";
 
 export interface EditNoteInput {
@@ -55,10 +55,7 @@ export async function editNoteImpl(
 
   const note = await readNote(ctx, input.noteKey);
   if (note === null) {
-    await reply(
-      `Amplifier has no stored text for this note, so it cannot edit it. A note is kept for ` +
-        `${config.seenTtlSeconds / 86_400} days, so this one has probably expired.`,
-    );
+    await reply(noStoredNoteMessage("edit", config.seenTtlSeconds));
     return { edited: false, reason: "no-note" };
   }
 

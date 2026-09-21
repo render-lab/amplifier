@@ -1,5 +1,5 @@
 import type { PostMessageInput } from "@render-lab/tasks-slack";
-import { section, THREAD_MARKER } from "./template.js";
+import { section, sectionMrkdwn, THREAD_MARKER } from "./template.js";
 
 /** The failed-summary line `renderParent` adds, which a person's own lead replaces. */
 const FAILURE_LINE = /^_\(Summarization LLM call failed:.*\)_$/;
@@ -9,11 +9,9 @@ function sectionIndex(message: PostMessageInput): number {
   return (message.blocks ?? []).findIndex((block) => block["type"] === "section");
 }
 
-/** The first section block's mrkdwn. `SlackBlock` is an index type, so the field needs a cast. */
+/** The first section block's mrkdwn, given the index `sectionIndex` reported. */
 function sectionText(message: PostMessageInput, index: number): string | undefined {
-  const block = (message.blocks ?? [])[index];
-  const text = (block as { text?: { text?: unknown } } | undefined)?.text?.text;
-  return typeof text === "string" ? text : undefined;
+  return sectionMrkdwn((message.blocks ?? [])[index]);
 }
 
 /**

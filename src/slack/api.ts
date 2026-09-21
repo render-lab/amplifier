@@ -29,6 +29,17 @@ export interface SlackApiResponse {
 }
 
 /**
+ * Whether a Slack result carries what it was asked for.
+ *
+ * Every task over this client answers `{ error }` for an `ok: false` body — a
+ * `users_not_found` is a fact about a person, not a transport failure — so the
+ * guard is shared rather than written once per result type.
+ */
+export function isResolved<T extends object>(result: T | { error: string }): result is T {
+  return !("error" in result);
+}
+
+/**
  * Call one Web API method with the bot token and hand back the parsed body.
  *
  * `@render-lab/tasks-slack` 0.3.0's `SlackWebPort` covers posting, reactions

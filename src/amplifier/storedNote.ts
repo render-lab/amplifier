@@ -1,6 +1,7 @@
 import type { TaskContext } from "@renderinc/sdk/workflows";
 import { get as kvGet, set as kvSet } from "@render-lab/tasks-render-kv";
 import type { PostMessageInput } from "@render-lab/tasks-slack";
+import { SECONDS_PER_DAY } from "../time.js";
 
 /**
  * A posted thread, kept so `amplifier.repost` can post it again.
@@ -65,4 +66,18 @@ export async function readNote(ctx: TaskContext, key: string): Promise<StoredNot
     console.error(`[amplifier] The stored note ${key} is not readable JSON.`);
     return null;
   }
+}
+
+/**
+ * What a clicker hears when `readNote` found nothing.
+ *
+ * Both the Repost and the Edit path answer a miss the same way, because the
+ * record carries the announced marker's TTL and a miss means the note is older
+ * than AMPLIFIER_SEEN_TTL_DAYS. `action` is the verb for the click that missed.
+ */
+export function noStoredNoteMessage(action: "repost" | "edit", ttlSeconds: number): string {
+  return (
+    `Amplifier has no stored text for this note, so it cannot ${action} it. A note is kept ` +
+    `for ${ttlSeconds / SECONDS_PER_DAY} days, so this one has probably expired.`
+  );
 }

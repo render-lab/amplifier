@@ -2,6 +2,7 @@ import type { TaskContext } from "@renderinc/sdk/workflows";
 import type { PostMessageInput } from "@render-lab/tasks-slack";
 import type { AmplifierConfig } from "../config.js";
 import { postNote } from "../slack/postNote.js";
+import { postReplies } from "../slack/thread.js";
 import { isSummary, summarizeGroup, type SummaryOutcome } from "../summary/summarize.js";
 import type { Platform } from "../typefully/types.js";
 import { startRun as defaultStartRun, type StartRun } from "./dispatchRun.js";
@@ -14,6 +15,7 @@ import {
   renderChildren,
   renderFlatNote,
   renderParent,
+  sectionMrkdwn,
   type RenderNoteOptions,
 } from "./template.js";
 
@@ -125,7 +127,7 @@ export async function announceGroups(
           await storeNote(ctx, key, { parent, replies }, config.seenTtlSeconds);
         }
         if (replies.length > 0) {
-          await postReplies(ctx, group, replies, threadTs);
+          await postLinkReplies(ctx, group, replies, threadTs);
         }
         if (config.pingOwners) {
           await pingLaunchOwners(ctx, group, noteChannel, threadTs);
@@ -190,18 +192,13 @@ function renderGroup(
 }
 
 /**
- * Post the thread's replies, in order.
+ * Post the thread's links as replies under the note.
  *
- * Sequential and not `Promise.all`, because the order the links appear in the
- * thread is part of the format.
- *
- * A failed reply is logged rather than thrown. The announced marker is already
+ * A failure is logged rather than thrown. The announced marker is already
  * written, so throwing here would leave the drafts unmarked and a later run
  * would post a second parent; a thread missing one link is the smaller problem.
- * Each reply is its own subtask under SLACK_RETRY, so a transient failure has
- * already been retried by the time this catches.
  */
-async function postReplies(
+async function postLinkReplies(
   ctx: TaskContext,
   group: PostGroup,
   replies: PostMessageInput[],
@@ -214,17 +211,13 @@ async function postReplies(
     );
     return;
   }
-  for (const reply of replies) {
-    try {
-      await ctx.run(postNote, { ...reply, threadTs });
-    } catch (err) {
-      console.error(
-        `[amplifier] A thread reply for ${group.draftIds.join(", ")} failed. The thread is ` +
-          `missing a link and the drafts stay announced.`,
-        err,
-      );
-    }
-  }
+  await postReplies(ctx, replies, threadTs, (err) => {
+    console.error(
+      `[amplifier] A thread reply for ${group.draftIds.join(", ")} failed. The thread is ` +
+        `missing a link and the drafts stay announced.`,
+      err,
+    );
+  });
 }
 
 /**
@@ -323,8 +316,8 @@ function logDryRun(parent: PostMessageInput, replies: PostMessageInput[]): void 
 function messageText(message: PostMessageInput): string {
   if (message.markdown) return message.markdown;
   const sections = (message.blocks ?? []).flatMap((block) => {
-    const text = (block as { text?: { text?: unknown } }).text?.text;
-    return typeof text === "string" ? [text] : [];
+    const text = sectionMrkdwn(block);
+    return text === undefined ? [] : [text];
   });
   return sections.length > 0 ? sections.join("\n\n") : message.text;
 }

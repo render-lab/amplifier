@@ -1,6 +1,7 @@
 import { createDispatchServer, type WorkflowDispatcher } from "@render-lab/triggers";
 import type { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
+import { record } from "./json.js";
 import {
   CALLBACK_PATH,
   isVerified,
@@ -221,13 +222,11 @@ function stateMessage(failure: StateFailure): string {
  * the shape is checked rather than asserted.
  */
 function exchangeError(results: unknown): string | undefined {
-  const result = Array.isArray(results) ? results[0] : results;
-  if (typeof result !== "object" || result === null) {
-    return "The token exchange returned nothing readable.";
-  }
-  const r = result as { saved?: unknown; error?: unknown };
-  if (r.saved === true) return undefined;
-  return typeof r.error === "string" ? r.error : "The token was not saved.";
+  const result = record(Array.isArray(results) ? results[0] : results);
+  if (!result) return "The token exchange returned nothing readable.";
+  if (result["saved"] === true) return undefined;
+  const error = result["error"];
+  return typeof error === "string" ? error : "The token was not saved.";
 }
 
 /** A plain HTML page, which is all a browser gets from this receiver. */

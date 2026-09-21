@@ -1,6 +1,9 @@
-// Timestamp ordering. Typefully's timestamps are strings, and string order only
-// matches time order when every timestamp uses the same UTC format. Compare
-// parsed milliseconds instead, and keep the string for display.
+// Time units and timestamp ordering. Typefully's timestamps are strings, and
+// string order only matches time order when every timestamp uses the same UTC
+// format. Compare parsed milliseconds instead, and keep the string for display.
+
+/** Seconds in a day, which is the unit AMPLIFIER_SEEN_TTL_DAYS is given in. */
+export const SECONDS_PER_DAY = 86_400;
 
 /**
  * Milliseconds for an ISO 8601 timestamp. An unparseable value compares greater

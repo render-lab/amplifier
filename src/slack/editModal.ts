@@ -1,5 +1,5 @@
 import type { SlackJsonValue } from "@render-lab/tasks-slack";
-import { nonEmptyString } from "../json.js";
+import { nonEmptyString, record } from "../json.js";
 
 /** The `callback_id` the modal carries, which the receiver matches on submit. */
 export const EDIT_CALLBACK_ID = "amplifier_edit_note";
@@ -45,8 +45,8 @@ export function decodeMeta(value: unknown): EditMeta | null {
   } catch {
     return null;
   }
-  if (typeof parsed !== "object" || parsed === null) return null;
-  const m = parsed as Record<string, unknown>;
+  const m = record(parsed);
+  if (!m) return null;
   const channel = nonEmptyString(m["channel"]);
   const messageTs = nonEmptyString(m["messageTs"]);
   const noteKey = nonEmptyString(m["noteKey"]);
