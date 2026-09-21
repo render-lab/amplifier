@@ -1,0 +1,17 @@
+# The Render Tasks packages are pinned exactly and break their APIs between
+# releases, so their updates come as separate PRs that CI has to pass.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
