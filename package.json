@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=24"
+  },
   "description": "Posts an amplify note to Slack when a Render post goes live on X or LinkedIn.",
   "scripts": {
     "dev": "tsx src/main.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
     "trigger:serve": "node dist/webhook-server.js",
     "stub": "tsx scripts/typefully-stub.ts",
     "local:run": "tsx scripts/local-run.ts",
