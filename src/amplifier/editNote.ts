@@ -89,7 +89,7 @@ export async function editNoteImpl(
   const { value: reposted } = await ctx.run(kvGet, { key: repostedKey(input.noteKey) });
   await reply(
     reposted === null
-      ? "Updated. The Repost button now posts the new text."
+      ? "Updated. Reposting your edited message."
       : `Updated here. This note was already reposted${
           config.repostChannel ? ` to #${config.repostChannel}` : ""
         }, and that copy is unchanged.`,

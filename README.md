@@ -152,6 +152,7 @@ region Oregon, built from `main`.
    | -------------------- | ------------------------- | ------------------------------------------------------ |
    | `amplifier-triggers` | `RENDER_API_KEY`          | A key for the workspace that owns the Workflow service |
    | `amplifier-triggers` | `WORKFLOW_SLUG`           | The slug from step 2                                   |
+   | `amplifier-triggers` | `SLACK_BOT_TOKEN`         | The `xoxb-` token, for the Edit button                 |
    | `amplifier-workflow` | `ANTHROPIC_API_KEY`       | An Anthropic API key                                   |
    | `amplifier-workflow` | `TYPEFULLY_API_KEY`       | Typefully Settings > Integrations                      |
    | `amplifier-workflow` | `TYPEFULLY_SOCIAL_SET_ID` | `GET /v2/social-sets` lists them                       |
@@ -430,8 +431,9 @@ exist until the Blueprint is applied. Deployment step 6 fills them in.
 
 Copy these into the env groups in deployment step 4:
 
-- **`SLACK_BOT_TOKEN`** is the `xoxb-` token on **OAuth & Permissions**. Goes in
-  `amplifier-workflow`. `/invite` the bot to the channel first.
+- **`SLACK_BOT_TOKEN`** is the `xoxb-` token on **OAuth & Permissions**. Goes in both
+  groups, with the same value: `amplifier-workflow` posts the notes with it, and the
+  receiver opens the edit box with it. `/invite` the bot to the channel first.
 - **`SLACK_CHANNEL`** is the channel the notes go to. Goes in `amplifier-workflow`. The
   leading `#` is optional. If the production channel is busy, use a test channel first.
 - **`SLACK_SIGNING_SECRET`** is on **Basic Information**. Goes in both groups, with the same
@@ -483,10 +485,10 @@ host.
    Slack usually returns the same `xoxb-` value, and then there is nothing to change. If it
    did change, paste the new one in and redeploy `amplifier-workflow`.
 5. Set the environment variables the button needs. In the Render Dashboard the two env
-   groups are under **Env Groups**. `amplifier-triggers` gets `SLACK_CLIENT_ID` and
-   `SLACK_SIGNING_SECRET`. `amplifier-workflow` gets those two plus `SLACK_CLIENT_SECRET`,
-   `AMPLIFIER_REPOST_CHANNEL`, and `AMPLIFIER_PUBLIC_URL`. Redeploy both services
-   afterwards. Where each value comes from:
+   groups are under **Env Groups**. `amplifier-triggers` gets `SLACK_CLIENT_ID`,
+   `SLACK_SIGNING_SECRET` and `SLACK_BOT_TOKEN`. `amplifier-workflow` gets the client id
+   and the signing secret too, plus `SLACK_CLIENT_SECRET`, `AMPLIFIER_REPOST_CHANNEL`, and
+   `AMPLIFIER_PUBLIC_URL`. Redeploy both services afterwards. Where each value comes from:
 
    - `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` and `SLACK_SIGNING_SECRET` are all on the
      Slack app's **Basic Information** page, under **App Credentials**. The secret and the
@@ -581,6 +583,15 @@ Notes posted before this shipped carry no Edit button.
 
 The receiver needs `SLACK_BOT_TOKEN` in `amplifier-triggers`, because it opens the box itself. A
 Slack `trigger_id` expires in three seconds, which is too little to start a workflow run first.
+It is the same `xoxb-` token `amplifier-workflow` holds, so paste the same value into both
+groups. Add it to the group rather than to the `amplifier-webhook` service, because
+`render.yaml` gives the service only `fromGroup: amplifier-triggers` and a variable set on the
+service is removed on the next Blueprint sync. Redeploy the receiver afterwards.
+
+Without the token, a click on Edit does nothing and Slack shows "This app responded with Status
+Code 500". Repost still works, because that path only starts a run. The receiver's log says
+`SLACK_BOT_TOKEN is unset, so views.open cannot be called.`
+
 Editing needs no Slack app change and no reinstall.
 
 ## Repost reminders
