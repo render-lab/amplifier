@@ -209,7 +209,7 @@ describe("POST /slack/interactivity, editing", () => {
         responseUrl: "https://hooks.slack.com/actions/T/1/2",
       }),
       state: {
-        values: { [LEAD_BLOCK_ID]: { [LEAD_ACTION_ID]: { value: "  Shifra's title  " } } },
+        values: { [LEAD_BLOCK_ID]: { [LEAD_ACTION_ID]: { value: "  A new lead line  " } } },
       },
     },
   };
@@ -281,7 +281,7 @@ describe("POST /slack/interactivity, editing", () => {
             messageTs: "17580000.001",
             noteKey: "amplifier:note:1",
             responseUrl: "https://hooks.slack.com/actions/T/1/2",
-            lead: "Shifra's title",
+            lead: "A new lead line",
           },
         ],
       },

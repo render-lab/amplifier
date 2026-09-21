@@ -83,9 +83,9 @@ describe("parseEditClick", () => {
 
 describe("parseEditSubmit", () => {
   it("reads the new lead line and the note it belongs to", () => {
-    expect(parseEditSubmit(submission("Shifra's title"))).toEqual({
+    expect(parseEditSubmit(submission("A new lead line"))).toEqual({
       meta: META,
-      lead: "Shifra's title",
+      lead: "A new lead line",
     });
   });
 
@@ -94,7 +94,7 @@ describe("parseEditSubmit", () => {
   });
 
   it("ignores a submission whose metadata is not amplifier's", () => {
-    expect(parseEditSubmit(submission("Shifra's title", "{}"))).toBeNull();
+    expect(parseEditSubmit(submission("A new lead line", "{}"))).toBeNull();
   });
 
   it("ignores a payload that is not a modal submission", () => {

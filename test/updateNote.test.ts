@@ -33,8 +33,8 @@ describe("updateNoteImpl", () => {
       {
         channel: "C1",
         messageTs: "17580000.001",
-        text: "Shifra's title",
-        blocks: [section("Shifra's title")],
+        text: "A new lead line",
+        blocks: [section("A new lead line")],
       },
       env,
     );
@@ -42,8 +42,8 @@ describe("updateNoteImpl", () => {
     expect(result).toEqual({ updated: true });
     expect(calls[0]?.url).toContain("/chat.update");
     expect(calls[0]?.form.get("ts")).toBe("17580000.001");
-    expect(calls[0]?.form.get("text")).toBe("Shifra's title");
-    expect(JSON.parse(calls[0]?.form.get("blocks") ?? "[]")).toEqual([section("Shifra's title")]);
+    expect(calls[0]?.form.get("text")).toBe("A new lead line");
+    expect(JSON.parse(calls[0]?.form.get("blocks") ?? "[]")).toEqual([section("A new lead line")]);
   });
 
   it("returns the Slack error rather than throwing, so the editor hears why", async () => {
@@ -52,7 +52,7 @@ describe("updateNoteImpl", () => {
 
     const result = await updateNoteImpl(
       fakeCtx({}),
-      { channel: "C1", messageTs: "17580000.001", text: "Shifra's title" },
+      { channel: "C1", messageTs: "17580000.001", text: "A new lead line" },
       env,
     );
 

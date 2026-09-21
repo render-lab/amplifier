@@ -10,7 +10,7 @@ const INPUT = {
   channel: "C1",
   messageTs: "17580000.001",
   noteKey: NOTE,
-  lead: "Shifra's title",
+  lead: "A new lead line",
   responseUrl: "https://hooks.slack.com/actions/T/1/2",
 };
 
@@ -61,8 +61,8 @@ describe("editNoteImpl", () => {
 
     expect(result).toEqual({ edited: true });
     const update = calls.find((c) => c.name === "amplifier.updateNote");
-    expect(update?.input.text).toBe("Shifra's title");
-    expect(update?.input.blocks[0]).toEqual(section(`Shifra's title${THREAD_MARKER}`));
+    expect(update?.input.text).toBe("A new lead line");
+    expect(update?.input.blocks[0]).toEqual(section(`A new lead line${THREAD_MARKER}`));
     expect(update?.input.blocks[1]).toEqual(noteActions("social", NOTE));
   });
 
@@ -74,7 +74,7 @@ describe("editNoteImpl", () => {
 
     const set = calls.find((c) => c.name === "kv.set");
     const written = JSON.parse(set?.input.value);
-    expect(written.parent.text).toBe("Shifra's title");
+    expect(written.parent.text).toBe("A new lead line");
     expect(written.replies).toEqual(stored.replies);
   });
 

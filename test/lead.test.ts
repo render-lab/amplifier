@@ -59,55 +59,55 @@ describe("leadOf", () => {
 
 describe("withLead", () => {
   it("replaces the lead line and keeps the marker and the rest of the block", () => {
-    const edited = withLead(parent(), "Shifra's title");
+    const edited = withLead(parent(), "A new lead line");
 
     expect(edited?.blocks?.[0]).toEqual(
       section(
-        `Shifra's title${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
+        `A new lead line${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
       ),
     );
   });
 
   it("keeps the buttons, so an edited note is still repostable", () => {
-    const edited = withLead(parent(), "Shifra's title");
+    const edited = withLead(parent(), "A new lead line");
 
     expect(edited?.blocks?.[1]).toEqual(repostBlock("amplify-queue", "amplifier:note:1"));
   });
 
   it("rewrites the notification fallback without the marker", () => {
-    expect(withLead(parent(), "Shifra's title")?.text).toBe("Shifra's title");
+    expect(withLead(parent(), "A new lead line")?.text).toBe("A new lead line");
   });
 
   it("drops the summary-failed line, because a person wrote this line", () => {
-    const edited = withLead(fallback(), "Shifra's title");
+    const edited = withLead(fallback(), "A new lead line");
 
     expect(edited?.blocks?.[0]).toEqual(
-      section("Shifra's title\n\n> preview\n\n<https://x.com/1|X>"),
+      section("A new lead line\n\n> preview\n\n<https://x.com/1|X>"),
     );
   });
 
   it("writes one marker when the submitted lead still carries the shortcode", () => {
-    const edited = withLead(parent(), "Shifra's title :thread:");
+    const edited = withLead(parent(), "A new lead line :thread:");
 
     expect(edited?.blocks?.[0]).toEqual(
       section(
-        `Shifra's title${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
+        `A new lead line${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
       ),
     );
-    expect(edited?.text).toBe("Shifra's title");
+    expect(edited?.text).toBe("A new lead line");
   });
 
   it("keeps the marker when the stored line carries the shortcode", () => {
-    const edited = withLead(echoedParent(), "Shifra's title");
+    const edited = withLead(echoedParent(), "A new lead line");
 
     expect(edited?.blocks?.[0]).toEqual(
       section(
-        `Shifra's title${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
+        `A new lead line${THREAD_MARKER}\n\n_X had not published yet, so there is no link for it._`,
       ),
     );
   });
 
   it("has nothing to edit in a message with no section block", () => {
-    expect(withLead({ text: "hi" }, "Shifra's title")).toBeNull();
+    expect(withLead({ text: "hi" }, "A new lead line")).toBeNull();
   });
 });
