@@ -20,6 +20,15 @@ export function slackBaseUrl(env: NodeJS.ProcessEnv): string {
   });
 }
 
+/**
+ * One form field's value.
+ *
+ * Objects are excluded because the body is form-encoded: `views.open` and
+ * `chat.update` JSON-encode their `view` and `blocks` before the call, and
+ * passing the object itself would send the string "[object Object]".
+ */
+export type SlackFormValue = string | number | boolean | null | undefined;
+
 /** A Web API reply, as far as the callers here read it. */
 export interface SlackApiResponse {
   ok?: boolean;
@@ -54,7 +63,7 @@ export function isResolved<T extends object>(result: T | { error: string }): res
  */
 export async function callSlack(
   method: string,
-  body: Record<string, unknown>,
+  body: Record<string, SlackFormValue>,
   opts: { env?: NodeJS.ProcessEnv; fetchImpl?: FetchLike } = {},
 ): Promise<SlackApiResponse> {
   const env = opts.env ?? process.env;
