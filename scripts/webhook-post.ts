@@ -23,9 +23,15 @@ if (!secret) {
   throw new Error("Set TYPEFULLY_WEBHOOK_SECRET to the same value the receiver reads.");
 }
 
+/** The fields this script rewrites before signing. The rest is passed through. */
+interface TypefullyEvent {
+  event: string;
+  data: { id: number };
+}
+
 const event = JSON.parse(
   readFileSync(new URL("../test/support/typefully-event.json", import.meta.url), "utf8"),
-);
+) as TypefullyEvent;
 const draftId = process.argv[2];
 if (draftId !== undefined) {
   // A non-numeric argument would serialize as null and send an event with no

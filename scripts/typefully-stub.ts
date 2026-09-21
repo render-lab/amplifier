@@ -72,7 +72,9 @@ const server = createServer((req, res) => {
   if (req.method === "GET" && /^\/v2\/social-sets\/[^/]+\/drafts$/.test(url.pathname)) {
     const limit = Number(url.searchParams.get("limit") ?? DRAFTS.length);
     const results = DRAFTS.slice(0, limit);
-    console.log(`[stub] ${url.pathname}?${url.searchParams} -> ${results.length} drafts`);
+    console.log(
+      `[stub] ${url.pathname}?${url.searchParams.toString()} -> ${results.length} drafts`,
+    );
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ results }));
     return;

@@ -17,7 +17,7 @@ export type ResponseFetch = (
 export async function respondEphemeral(
   responseUrl: string,
   text: string,
-  fetchImpl: ResponseFetch = fetch as unknown as ResponseFetch,
+  fetchImpl: ResponseFetch = fetch,
 ): Promise<void> {
   try {
     const res = await fetchImpl(responseUrl, {

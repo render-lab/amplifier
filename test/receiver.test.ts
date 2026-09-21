@@ -45,7 +45,7 @@ function dispatcherReturning(results: unknown, timedOut = false): WorkflowDispat
   return {
     start: async () => ({ runId: "run-1" }),
     run: async () => ({ runId: "run-1", status: "succeeded", results, timedOut }),
-  } as unknown as WorkflowDispatcher;
+  };
 }
 
 /** A dispatcher that records every `start` call instead of dispatching. */

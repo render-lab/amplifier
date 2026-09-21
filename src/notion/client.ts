@@ -72,23 +72,32 @@ export function notionPort(
 
   return {
     async getPage(pageId) {
-      const body = await client.call(`/v1/pages/${encodeURIComponent(pageId)}`);
-      return (body ?? {}) as NotionPage;
+      const body = (await client.call(
+        `/v1/pages/${encodeURIComponent(pageId)}`,
+      )) as NotionPage | null;
+      return body ?? {};
     },
     async getDatabase(databaseId) {
-      const body = await client.call(`/v1/databases/${encodeURIComponent(databaseId)}`);
-      return (body ?? {}) as NotionDatabase;
+      const body = (await client.call(
+        `/v1/databases/${encodeURIComponent(databaseId)}`,
+      )) as NotionDatabase | null;
+      return body ?? {};
     },
     async getDataSource(dataSourceId) {
-      const body = await client.call(`/v1/data_sources/${encodeURIComponent(dataSourceId)}`);
-      return (body ?? {}) as NotionDataSource;
+      const body = (await client.call(
+        `/v1/data_sources/${encodeURIComponent(dataSourceId)}`,
+      )) as NotionDataSource | null;
+      return body ?? {};
     },
     async queryDataSource(dataSourceId, query) {
-      const body = await client.call(`/v1/data_sources/${encodeURIComponent(dataSourceId)}/query`, {
-        method: "POST",
-        body: query,
-      });
-      return (body ?? {}) as QueryResult;
+      const body = (await client.call(
+        `/v1/data_sources/${encodeURIComponent(dataSourceId)}/query`,
+        {
+          method: "POST",
+          body: query,
+        },
+      )) as QueryResult | null;
+      return body ?? {};
     },
   };
 }

@@ -77,7 +77,7 @@ export async function callSlack(
     if (value !== undefined && value !== null) form.set(field, String(value));
   }
 
-  const fetchImpl = opts.fetchImpl ?? (fetch as unknown as FetchLike);
+  const fetchImpl = opts.fetchImpl ?? fetch;
   const res = await fetchImpl(`${slackBaseUrl(env)}/${method}`, {
     method: "POST",
     headers: {

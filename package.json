@@ -15,11 +15,14 @@
     "stub": "tsx scripts/typefully-stub.ts",
     "local:run": "tsx scripts/local-run.ts",
     "webhook:post": "tsx scripts/webhook-post.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm build"
+    "test:coverage": "vitest run --coverage",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build"
   },
   "dependencies": {
     "@hono/node-server": "2.1.1",
@@ -32,11 +35,15 @@
     "hono": "4.13.5"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@render-lab/test-utils": "0.1.0",
     "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^10.11.0",
     "prettier": "^3.9.6",
     "tsx": "^4.23.0",
     "typescript": "^6.0.0",
+    "typescript-eslint": "^8.70.0",
     "vitest": "^4.1.0"
   }
 }

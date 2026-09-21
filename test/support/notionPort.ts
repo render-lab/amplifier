@@ -12,7 +12,7 @@ export function fakeNotion(overrides: Partial<NotionPort> = {}): NotionPort {
   const unexpected = <M extends keyof NotionPort>(method: M): NotionPort[M] =>
     vi.fn(async () => {
       throw new Error(`Unexpected Notion call: ${method}`);
-    }) as NotionPort[M];
+    });
   return {
     getPage: unexpected("getPage"),
     getDatabase: unexpected("getDatabase"),

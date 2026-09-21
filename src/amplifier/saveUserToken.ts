@@ -51,7 +51,7 @@ export async function saveUserTokenImpl(
     return { saved: false, error: "SLACK_CLIENT_ID and SLACK_CLIENT_SECRET are not both set." };
   }
 
-  const doFetch = deps.fetchImpl ?? (fetch as unknown as ResponseFetch);
+  const doFetch = deps.fetchImpl ?? fetch;
   const body = new URLSearchParams({
     client_id: clientId,
     client_secret: clientSecret,

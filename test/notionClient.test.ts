@@ -19,7 +19,7 @@ function fakeFetch() {
 describe("notionPort", () => {
   it("sends the bearer token and the pinned API version", async () => {
     const fetchImpl = fakeFetch();
-    const port = notionPort({ env: { NOTION_TOKEN: "ntn_test" }, fetchImpl: fetchImpl as never });
+    const port = notionPort({ env: { NOTION_TOKEN: "ntn_test" }, fetchImpl });
 
     await port.getPage(PAGE.id as string);
 
@@ -30,7 +30,7 @@ describe("notionPort", () => {
   });
 
   it("fails on use, not at import, when the token is unset", async () => {
-    const port = notionPort({ env: {}, fetchImpl: fakeFetch() as never });
+    const port = notionPort({ env: {}, fetchImpl: fakeFetch() });
     await expect(port.getPage("page_1")).rejects.toThrow(/NOTION_TOKEN is required/);
   });
 
