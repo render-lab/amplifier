@@ -72,12 +72,16 @@ projects:
                 value: anthropic/claude-sonnet-5
               - key: AMPLIFIER_REPOST_EMOJI
                 value: white_check_mark
-              # The launch page's two property names, and the database the pages
-              # live in. All three are display-level Notion settings rather than
-              # secrets, so they carry literal values here.
+              # The launch page's two property names. Both are display-level
+              # Notion settings rather than secrets, so they carry literal
+              # values here.
+              #
+              # NOTION_DATABASE_ID is deliberately absent. It names one
+              # workspace's database, and a literal here would overwrite a
+              # Dashboard value on every Blueprint sync, so it is added to this
+              # group by hand alongside NOTION_TOKEN. README, Deployment step 4,
+              # lists it.
               - key: NOTION_TYPEFULLY_PROPERTY
                 value: Typefully
               - key: NOTION_OWNERS_PROPERTY
                 value: Owner
-              - key: NOTION_DATABASE_ID
-                value: 7dabf9f3eeb64800bdf6b919611ff771

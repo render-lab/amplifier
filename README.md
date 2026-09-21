@@ -159,12 +159,13 @@ region Oregon, built from `main`.
    | `amplifier-workflow` | `SLACK_BOT_TOKEN`         | See below                                              |
    | `amplifier-workflow` | `SLACK_CHANNEL`           | The channel the notes go to                            |
    | `amplifier-workflow` | `NOTION_TOKEN`            | Integration token, for the owner DMs                   |
+   | `amplifier-workflow` | `NOTION_DATABASE_ID`      | The launch database's id, for the owner DMs            |
    | `amplifier-workflow` | `RENDER_API_KEY`          | The same key, for the repost reminder's own run        |
    | `amplifier-workflow` | `WORKFLOW_SLUG`           | The slug from step 2, for the same reason              |
 
    For Slack, add `SLACK_BOT_TOKEN` and `SLACK_CHANNEL`. Both are required. To turn the Repost button on, also add `AMPLIFIER_REPOST_CHANNEL`, `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` and `SLACK_SIGNING_SECRET` to `amplifier-workflow`, and `SLACK_CLIENT_ID` and `SLACK_SIGNING_SECRET` to `amplifier-triggers`. All four Slack values are on the app's Basic Information page. `AMPLIFIER_PUBLIC_URL` comes later, in step 6, because it is the receiver's own URL. The Edit button also needs `SLACK_BOT_TOKEN` in `amplifier-triggers`, because the receiver opens the edit box itself. See [Reposting](#reposting) and [Editing a note](#editing-a-note).
 
-   `NOTION_TOKEN` is only needed for the owner DMs; leave it out if you only want the announce path. See [Pinging a launch's owners](#pinging-a-launchs-owners).
+   `NOTION_TOKEN` and `NOTION_DATABASE_ID` are only needed for the owner DMs; leave them out if you only want the announce path. See [Pinging a launch's owners](#pinging-a-launchs-owners).
 
    `RENDER_API_KEY` and `WORKFLOW_SLUG` appear twice, once per group. The receiver uses them to start a run from a webhook delivery, and the Workflow service uses them to start the repost reminder's own run. Leave them out of `amplifier-workflow` if you do not want reminders; a run then logs that it skipped the dispatch and the note gets no reminder. See [Repost reminders](#repost-reminders).
 
@@ -316,14 +317,13 @@ Re-run steps 5 to 7 to add a page the grant does not cover, or add it from the d
 
 1. Copy the launch database's id. Open the database as a full page and take the 32 hex characters
    in the URL before the `?`, so
-   `https://notion.so/7dabf9f3eeb64800bdf6b919611ff771?v=39d751b483268049b220000c027ed883` gives
-   `7dabf9f3eeb64800bdf6b919611ff771`. The `v=` part names a view, which amplifier does not read. A
+   `https://notion.so/0123456789abcdef0123456789abcdef?v=39d751b483268049b220000c027ed883` gives
+   `0123456789abcdef0123456789abcdef`. The `v=` part names a view, which amplifier does not read. A
    link copied from a row gives that row's page id instead, and `notion.findLaunches` then fails
-   with a 404 naming `NOTION_DATABASE_ID`. `render.yaml` already carries the Render content
-   database's id, so the Render team can skip this step and check the value the Blueprint set.
-2. Add the token to the `amplifier-workflow` env group as `NOTION_TOKEN`, along with
-   `NOTION_DATABASE_ID` if you are not using the id from `render.yaml`, and redeploy the Workflow
-   service. It reads the token on each call, but the redeploy is what puts the new variables on the
+   with a 404 naming `NOTION_DATABASE_ID`.
+2. Add both values to the `amplifier-workflow` env group, as `NOTION_TOKEN` and
+   `NOTION_DATABASE_ID`, and redeploy the Workflow service. `render.yaml` carries no id, because a
+   literal there would overwrite the Dashboard value on every Blueprint sync. It reads the token on each call, but the redeploy is what puts the new variables on the
    running service.
 3. Dry-run the ping against one real launch page, so you can read the owner lookups before a live
    post depends on them. It needs a note already in the channel to link to, so take the page id
@@ -787,7 +787,7 @@ Default ping ask: "Please click the Repost button in this thread"
 
 Default reminder text: "This post still needs to be shared in #{channel}. The first hour matters most, so can the owner or another team member share it?"
 
-Every variable above reaches the Workflow service through the `amplifier-workflow` env group, so set them there rather than on the service. You add most of them to the group by hand, in step 4. `AMPLIFIER_SUMMARY_MODEL`, `AMPLIFIER_REPOST_EMOJI`, `NOTION_TYPEFULLY_PROPERTY`, `NOTION_OWNERS_PROPERTY` and `NOTION_DATABASE_ID` have literal values in `render.yaml`, so a Blueprint apply resets a Dashboard override of any of those five.
+Every variable above reaches the Workflow service through the `amplifier-workflow` env group, so set them there rather than on the service. You add most of them to the group by hand, in step 4. `AMPLIFIER_SUMMARY_MODEL`, `AMPLIFIER_REPOST_EMOJI`, `NOTION_TYPEFULLY_PROPERTY` and `NOTION_OWNERS_PROPERTY` have literal values in `render.yaml`, so a Blueprint apply resets a Dashboard override of any of those four.
 
 ### Webhook receiver
 
