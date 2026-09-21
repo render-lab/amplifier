@@ -10,6 +10,7 @@ import type { PostGroup } from "./group.js";
 import { pingOwners } from "./pingOwners.js";
 import { claimGroup, isClaimed, markAnnounced, releaseGroup } from "./seen.js";
 import { noteKey, storeNote } from "./storedNote.js";
+import * as log from "../log.js";
 import {
   notePlatforms,
   renderChildren,
@@ -68,7 +69,7 @@ export async function announceGroups(
     // race the same group.
     const summary = await summarizeGroup(ctx, group, { model: config.summaryModel });
     if (!isSummary(summary)) {
-      console.error(
+      log.error(
         `[amplifier] No summary for ${group.draftIds.join(", ")}: ${summary.error}. ` +
           `Posting the fallback note.`,
       );
@@ -116,7 +117,7 @@ export async function announceGroups(
         // real ports either deliver or throw, so this is reachable only through
         // injected deps. Nothing reached the channel, so leave the drafts
         // unannounced and let a later run retry them.
-        console.error(
+        log.error(
           `[amplifier] The Slack port reported the note for ${group.draftIds.join(", ")} ` +
             `undelivered. Those drafts stay unannounced and a later run retries them.`,
         );
@@ -205,14 +206,14 @@ async function postLinkReplies(
   threadTs: string | undefined,
 ): Promise<void> {
   if (threadTs === undefined) {
-    console.error(
+    log.error(
       `[amplifier] Slack returned no ts for the note on ${group.draftIds.join(", ")}, so its ` +
         `${replies.length} links cannot be posted as replies.`,
     );
     return;
   }
   await postReplies(ctx, replies, threadTs, (err) => {
-    console.error(
+    log.error(
       `[amplifier] A thread reply for ${group.draftIds.join(", ")} failed. The thread is ` +
         `missing a link and the drafts stay announced.`,
       err,
@@ -249,7 +250,7 @@ async function pingLaunchOwners(
       ...(threadTs ? { noteTs: threadTs } : {}),
     });
   } catch (err) {
-    console.error(
+    log.error(
       `[amplifier] The owner DMs for ${group.draftIds.join(", ")} failed. The note is already ` +
         `in the channel. Set AMPLIFIER_PING_OWNERS=false to stop trying.`,
       err,
@@ -295,15 +296,15 @@ async function scheduleReminder(
       },
     ]);
   } catch (err) {
-    console.error("[amplifier] The repost reminder run did not start.", err);
+    log.error("[amplifier] The repost reminder run did not start.", err);
   }
 }
 
 /** Log the parent and every reply, in the order a real run would post them. */
 function logDryRun(parent: PostMessageInput, replies: PostMessageInput[]): void {
-  console.log(`[dry run] would post:\n${messageText(parent)}`);
+  log.info(`[dry run] would post:\n${messageText(parent)}`);
   for (const reply of replies) {
-    console.log(`[dry run] would reply:\n${messageText(reply)}`);
+    log.info(`[dry run] would reply:\n${messageText(reply)}`);
   }
 }
 

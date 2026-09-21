@@ -7,6 +7,7 @@ import { withLead } from "./lead.js";
 import { repostedKey } from "./reposted.js";
 import { noStoredNoteMessage, readNote, storeNote } from "./storedNote.js";
 import { EDIT_RETRY } from "./retry.js";
+import * as log from "../log.js";
 
 export interface EditNoteInput {
   /** Channel the note is in, as the id the click carried. */
@@ -66,7 +67,7 @@ export async function editNoteImpl(
   }
 
   if (config.dryRun) {
-    console.log(`[dry run] would rewrite ${input.noteKey} as: ${input.lead}`);
+    log.info(`[dry run] would rewrite ${input.noteKey} as: ${input.lead}`);
     return { edited: false };
   }
 

@@ -2,6 +2,7 @@ import type { TaskContext } from "@renderinc/sdk/workflows";
 import { get as kvGet, set as kvSet } from "@render-lab/tasks-render-kv";
 import type { PostMessageInput } from "@render-lab/tasks-slack";
 import { SECONDS_PER_DAY } from "../time.js";
+import * as log from "../log.js";
 
 /**
  * A posted thread, kept so `amplifier.repost` can post it again.
@@ -63,7 +64,7 @@ export async function readNote(ctx: TaskContext, key: string): Promise<StoredNot
   try {
     return JSON.parse(value) as StoredNote;
   } catch {
-    console.error(`[amplifier] The stored note ${key} is not readable JSON.`);
+    log.error(`[amplifier] The stored note ${key} is not readable JSON.`);
     return null;
   }
 }

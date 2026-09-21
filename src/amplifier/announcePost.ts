@@ -5,6 +5,7 @@ import { findPost } from "../typefully/match.js";
 import { announceGroups, type NoteResult } from "./announce.js";
 import { groupPosts } from "./group.js";
 import { runToken, seenKey } from "./seen.js";
+import * as log from "../log.js";
 
 export interface AnnouncePostInput {
   /** Permalink to the live post, or its Typefully share URL. Either this or draftId. */
@@ -50,13 +51,13 @@ export async function announcePostImpl(
   const { value } = await ctx.run(kvGet, { key });
   if (value !== null) {
     if (!input.force) {
-      console.log(
+      log.info(
         `[amplifier] Draft ${post.draftId} is already announced. Pass force: true to re-post it.`,
       );
       return { draftId: post.draftId, dryRun: config.dryRun, skipped: "announced" };
     }
     await ctx.run(deleteKeys, { keys: [key] });
-    console.log(`[amplifier] Cleared the announced marker for draft ${post.draftId}.`);
+    log.info(`[amplifier] Cleared the announced marker for draft ${post.draftId}.`);
   }
 
   // A group window of 0, so a cross-posted draft still makes one note holding

@@ -1,3 +1,5 @@
+import * as log from "../log.js";
+
 /** The fetch shape the response-url helper needs, so a test can pass a fake. */
 export type ResponseFetch = (
   url: string,
@@ -24,9 +26,9 @@ export async function respondEphemeral(
       body: JSON.stringify({ response_type: "ephemeral", replace_original: false, text }),
     });
     if (!res.ok) {
-      console.error(`[amplifier] Slack rejected a response_url post with ${res.status}.`);
+      log.error(`[amplifier] Slack rejected a response_url post with ${res.status}.`);
     }
   } catch (err) {
-    console.error("[amplifier] Could not answer a Repost click through its response_url.", err);
+    log.error("[amplifier] Could not answer a Repost click through its response_url.", err);
   }
 }

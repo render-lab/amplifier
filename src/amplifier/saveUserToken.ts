@@ -3,6 +3,7 @@ import { set as kvSet } from "@render-lab/tasks-render-kv";
 import { loadConfig } from "../config.js";
 import { userTokenKey } from "../slack/oauth.js";
 import type { ResponseFetch } from "../slack/respond.js";
+import * as log from "../log.js";
 
 export interface SaveUserTokenInput {
   /** The single-use code Slack put on the callback URL. */
@@ -88,7 +89,7 @@ export async function saveUserTokenImpl(
   }
 
   await ctx.run(kvSet, { key: userTokenKey(input.userId), value: token });
-  console.log(`[amplifier] Stored a Slack user token for ${input.userId}.`);
+  log.info(`[amplifier] Stored a Slack user token for ${input.userId}.`);
   return { saved: true };
 }
 

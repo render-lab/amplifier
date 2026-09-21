@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { TaskContext } from "@renderinc/sdk/workflows";
 import { get as kvGet, lock, set as kvSet, unlock } from "@render-lab/tasks-render-kv";
 import type { PostGroup } from "./group.js";
+import * as log from "../log.js";
 
 /** A Key Value in-flight lock this run holds on one draft. */
 export interface Claim {
@@ -154,7 +155,7 @@ export async function releaseClaim(ctx: TaskContext, claim: Claim): Promise<void
   try {
     await ctx.run(unlock, { key: claim.key, token: claim.token });
   } catch (err) {
-    console.error(
+    log.error(
       `[amplifier] Could not release the in-flight lock ${claim.key}. It expires in ` +
         `${INFLIGHT_TTL_SECONDS}s and the next run retries what it covers.`,
       err,

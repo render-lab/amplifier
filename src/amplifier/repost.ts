@@ -18,6 +18,7 @@ import { releaseClaim, runToken } from "./seen.js";
 import { noStoredNoteMessage, readNote } from "./storedNote.js";
 import { withoutNoteActions } from "./template.js";
 import { REPOST_RETRY } from "./retry.js";
+import * as log from "../log.js";
 
 export interface RepostInput {
   /** Channel the clicked note is in. */
@@ -139,7 +140,7 @@ export async function repostImpl(
   const replies = note.replies.map((r) => ({ ...r, channel: repostChannel }));
 
   if (config.dryRun) {
-    console.log(`[dry run] would repost to #${repostChannel} as ${input.userId}`);
+    log.info(`[dry run] would repost to #${repostChannel} as ${input.userId}`);
     return { reposted: false };
   }
 
@@ -168,7 +169,7 @@ export async function repostImpl(
       // and Slack may have accepted a post it then failed to report, so the
       // retry is given up rather than risking a second thread. The lock expires
       // in INFLIGHT_TTL_SECONDS and the button works again after that.
-      console.error(
+      log.error(
         `[amplifier] The repost of ${input.noteKey} failed on the parent post, so the claim ` +
           `is held and further clicks are refused until it expires.`,
         err,
@@ -187,7 +188,7 @@ export async function repostImpl(
     ctx,
     replies.map((r) => ({ ...r, userToken })),
     threadTs,
-    (err) => console.error("[amplifier] A reposted thread is missing one of its links.", err),
+    (err) => log.error("[amplifier] A reposted thread is missing one of its links.", err),
   );
 
   await markSource(ctx, input, config.repostEmoji, config.seenTtlSeconds);
@@ -209,7 +210,7 @@ async function sendAuthorizeLink(
   nowMs: number,
   reply: (text: string) => Promise<void>,
 ): Promise<RepostRefusal> {
-  console.log(`[amplifier] No stored Slack token for ${input.userId}; sending the authorize link.`);
+  log.info(`[amplifier] No stored Slack token for ${input.userId}; sending the authorize link.`);
   const secret = env.SLACK_SIGNING_SECRET?.trim();
   const base = publicBaseUrl(env);
   if (!clientId || !secret || !base) {
@@ -256,7 +257,7 @@ async function markSource(
       ttlSeconds,
     });
   } catch (err) {
-    console.error(
+    log.error(
       "[amplifier] Could not record this note as reposted, so it may still get a reminder.",
       err,
     );
@@ -267,7 +268,7 @@ async function markSource(
     // Slack answers `already_reacted` on a repeat click, which is the state
     // this was trying to reach.
     if (!isSlackError(err, "already_reacted")) {
-      console.error(`[amplifier] Could not add :${emoji}: to the reposted note.`, err);
+      log.error(`[amplifier] Could not add :${emoji}: to the reposted note.`, err);
     }
   }
   try {
@@ -278,7 +279,7 @@ async function markSource(
       threadTs: input.messageTs,
     });
   } catch (err) {
-    console.error("[amplifier] Could not post the Reposted-by reply in the source thread.", err);
+    log.error("[amplifier] Could not post the Reposted-by reply in the source thread.", err);
   }
 }
 

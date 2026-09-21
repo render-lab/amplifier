@@ -3,6 +3,7 @@ import { defaultDeps, type NotionDeps } from "./client.js";
 import { matchPropertyName } from "./launch.js";
 import { NOTION_RETRY } from "./retry.js";
 import type { FindLaunchesInput, FindLaunchesResult } from "./types.js";
+import * as log from "../log.js";
 
 /**
  * Property types a contains filter works on. The filter key in Notion's query
@@ -48,7 +49,7 @@ export async function findLaunchesImpl(
     );
   }
   if (sources.length > 1) {
-    console.log(
+    log.info(
       `[amplifier] Database ${databaseId} has ${sources.length} data sources. Searching the ` +
         `first, ${sources[0]?.name ?? dataSourceId}.`,
     );

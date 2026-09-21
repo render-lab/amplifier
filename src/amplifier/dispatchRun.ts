@@ -1,4 +1,5 @@
 import { renderDispatcher } from "@render-lab/triggers";
+import * as log from "../log.js";
 
 /** Starts a workflow run by task name. */
 export type StartRun = (task: string, args: unknown[]) => Promise<void>;
@@ -26,7 +27,7 @@ export async function startRun(
   // stay off the Render API. The `Render` client throws "API token is required"
   // when the key is unset, which is why the key is checked before it is built.
   if (!slug || !apiKey) {
-    console.log(
+    log.info(
       `[amplifier] Not starting ${task}: this service has no ` +
         `${!slug ? "WORKFLOW_SLUG" : "RENDER_API_KEY"}.`,
     );
@@ -35,5 +36,5 @@ export async function startRun(
   // The run id is the only handle on a run nobody awaits, so it is logged for
   // whoever has to find the reminder's run in the dashboard.
   const { runId } = await renderDispatcher({ slug }).start(task, args);
-  console.log(`[amplifier] Started ${task} as run ${runId}.`);
+  log.info(`[amplifier] Started ${task} as run ${runId}.`);
 }

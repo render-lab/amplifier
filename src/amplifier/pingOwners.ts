@@ -12,6 +12,7 @@ import { resolveLaunchPageId } from "./launchPage.js";
 import { pingedKey, pingInflightKey } from "./pinged.js";
 import { ownerLabel, renderPingDm } from "./pingTemplate.js";
 import { INFLIGHT_TTL_SECONDS, releaseClaim, runToken } from "./seen.js";
+import * as log from "../log.js";
 
 export interface PingOwnersInput {
   /** Notion page id from the webhook, or pasted in for a manual run. */
@@ -102,7 +103,7 @@ async function pingOwner(
 
   const message = renderPingDm(launch, { channel: dm.channelId, noteUrl, ask: config.pingAsk });
   if (config.dryRun) {
-    console.log(`[dry run] would DM ${ownerLabel(owner)}:\n${message.markdown}`);
+    log.info(`[dry run] would DM ${ownerLabel(owner)}:\n${message.markdown}`);
     return pingedOwner(owner, email, false);
   }
 
@@ -134,7 +135,7 @@ async function threadLink(
   const channel = input.noteChannel?.trim();
   const messageTs = input.noteTs?.trim();
   if (!channel || !messageTs) {
-    console.error(
+    log.error(
       `[amplifier] No announcement thread for page ${pageId}, so nobody is DMed. Pass ` +
         `noteChannel and noteTs, both readable from the thread's Slack message link.`,
     );
@@ -143,7 +144,7 @@ async function threadLink(
 
   const link = await ctx.run(messageLink, { channel, messageTs });
   if (!isResolved(link)) {
-    console.error(
+    log.error(
       `[amplifier] Slack answered \`${link.error}\` for the thread ${channel}/${messageTs} on ` +
         `page ${pageId}, so nobody is DMed.`,
     );
@@ -165,7 +166,7 @@ function isPinged(outcome: PingedOwner | UnreachableOwner): outcome is PingedOwn
  */
 function logUnreachable(pageId: string, unreachable: UnreachableOwner[]): void {
   for (const { owner, reason } of unreachable) {
-    console.error(`[amplifier] No DM for ${ownerLabel(owner)} on page ${pageId}: ${reason}`);
+    log.error(`[amplifier] No DM for ${ownerLabel(owner)} on page ${pageId}: ${reason}`);
   }
 }
 
@@ -205,13 +206,13 @@ export async function pingOwnersImpl(
   const { value } = await ctx.run(kvGet, { key: marker });
   if (value !== null) {
     if (!input.force) {
-      console.log(
+      log.info(
         `[amplifier] Page ${pageId} was already pinged. Pass force: true to DM its owners again.`,
       );
       return { pageId, dryRun: config.dryRun, skipped: "pinged" };
     }
     await ctx.run(deleteKeys, { keys: [marker] });
-    console.log(`[amplifier] Cleared the pinged marker for page ${pageId}.`);
+    log.info(`[amplifier] Cleared the pinged marker for page ${pageId}.`);
   }
 
   const lockKey = pingInflightKey(pageId);
@@ -234,7 +235,7 @@ export async function pingOwnersImpl(
       ...(config.notionDatabaseId ? { databaseId: config.notionDatabaseId } : {}),
     });
     if (!isLaunch(outcome)) {
-      console.log(`[amplifier] Page ${pageId} is not ready to ping: ${outcome.skip}.`);
+      log.info(`[amplifier] Page ${pageId} is not ready to ping: ${outcome.skip}.`);
       return { pageId, dryRun: config.dryRun, skipped: outcome.skip };
     }
 

@@ -19,6 +19,7 @@ import { editView, LEAD_BLOCK_ID } from "./slack/editModal.js";
 import { respondEphemeral } from "./slack/respond.js";
 import { openView } from "./slack/views.js";
 import { typefullyWebhook } from "./typefully/webhook.js";
+import * as log from "./log.js";
 
 export interface ReceiverOptions {
   dispatcher: WorkflowDispatcher;
@@ -99,7 +100,7 @@ export function buildReceiver(opts: ReceiverOptions): Hono {
       const click = parseRepostClick(payload);
       if (click) {
         void opts.dispatcher.start("amplifier.repost", [click]).catch((err: unknown) => {
-          console.error("[amplifier] Could not start amplifier.repost for a Repost click.", err);
+          log.error("[amplifier] Could not start amplifier.repost for a Repost click.", err);
         });
         return c.body(null, 200);
       }
@@ -122,7 +123,7 @@ export function buildReceiver(opts: ReceiverOptions): Hono {
           { env },
         );
         if (!opened.opened) {
-          console.error(`[amplifier] Slack refused views.open: ${opened.error}.`);
+          log.error(`[amplifier] Slack refused views.open: ${opened.error}.`);
           await respondEphemeral(
             edit.responseUrl,
             `Slack would not open the edit box: ${opened.error}. Click Edit again.`,
@@ -145,7 +146,7 @@ export function buildReceiver(opts: ReceiverOptions): Hono {
         void opts.dispatcher
           .start("amplifier.editNote", [{ ...submit.meta, lead }])
           .catch((err: unknown) => {
-            console.error("[amplifier] Could not start amplifier.editNote for an edit.", err);
+            log.error("[amplifier] Could not start amplifier.editNote for an edit.", err);
           });
         // An empty body closes the modal.
         return c.json({}, 200);

@@ -1,4 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
+import * as log from "../log.js";
 
 /** Constant-time compare of two strings of any length. */
 export function timingSafeEquals(a: string, b: string): boolean {
@@ -24,14 +25,14 @@ export function isFresh(
   toleranceMs: number,
 ): boolean {
   if (!/^\d+$/.test(timestamp)) {
-    console.error(
+    log.error(
       `[amplifier] Rejected a ${provider} request: timestamp ${timestamp} is not Unix seconds.`,
     );
     return false;
   }
   const skewMs = Math.abs(nowMs - Number(timestamp) * 1_000);
   if (skewMs > toleranceMs) {
-    console.error(
+    log.error(
       `[amplifier] Rejected a ${provider} request: timestamp ${timestamp} is ` +
         `${Math.round(skewMs / 60_000)} minutes from this clock, past the ` +
         `${toleranceMs / 60_000}-minute window.`,

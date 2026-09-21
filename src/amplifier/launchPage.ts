@@ -4,6 +4,7 @@ import { findLaunches } from "../notion/findLaunches.js";
 import { readTypefullyUrl } from "../notion/launch.js";
 import { findPost, type PostQuery } from "../typefully/match.js";
 import type { PublishedPost } from "../typefully/types.js";
+import * as log from "../log.js";
 
 /** The last path segment of a URL, with any query string and fragment dropped. */
 function lastSegment(url: string): string | undefined {
@@ -88,7 +89,7 @@ export async function resolveLaunchPageId(
     throw new Error("A page in the launch database matched but carried no id.");
   }
   if (pages.length > 1 || truncated) {
-    console.log(
+    log.info(
       `[amplifier] ${pages.length}${truncated ? "+" : ""} launch pages carry this Typefully ` +
         `link. Pinging ${pageId}; pass pageId to choose another.`,
     );

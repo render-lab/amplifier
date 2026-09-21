@@ -5,6 +5,7 @@ import { postNote } from "../slack/postNote.js";
 import { renderReminder } from "./remindTemplate.js";
 import { remindedKey, repostedKey } from "./reposted.js";
 import { REMIND_RETRY, REMIND_TIMEOUT_SECONDS } from "./retry.js";
+import * as log from "../log.js";
 
 export interface RemindRepostInput {
   /** Channel the note is in, as the id Slack echoed back when it was posted. */
@@ -59,7 +60,7 @@ export async function remindRepostImpl(
   // The reminder names the repost channel and asks for the button in it, so
   // without one there is nothing to ask for.
   if (!config.repostChannel) {
-    console.log("[amplifier] No reminder: AMPLIFIER_REPOST_CHANNEL is unset.");
+    log.info("[amplifier] No reminder: AMPLIFIER_REPOST_CHANNEL is unset.");
     return { reminded: false, reason: "no-repost-channel" };
   }
 
@@ -74,7 +75,7 @@ export async function remindRepostImpl(
   // Checked before the sleep, so a dry run answers now instead of holding the
   // run open for the whole delay to print one line.
   if (config.dryRun) {
-    console.log(`[dry run] would remind:\n${message.text}`);
+    log.info(`[dry run] would remind:\n${message.text}`);
     return { reminded: false };
   }
 

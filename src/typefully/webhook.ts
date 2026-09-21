@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import type { WebhookAdapter, WebhookContext, WebhookRequest } from "@render-lab/triggers";
 import { isFresh, timingSafeEquals } from "../http/signature.js";
 import { nonEmptyString, record } from "../json.js";
+import * as log from "../log.js";
 
 /** The one event that can produce a note. */
 const PUBLISHED_EVENT = "draft.published";
@@ -63,9 +64,7 @@ export function typefullyWebhook(
     verify({ headers, rawBody }: WebhookRequest): boolean {
       const secret = env.TYPEFULLY_WEBHOOK_SECRET;
       if (!secret) {
-        console.error(
-          "[amplifier] TYPEFULLY_WEBHOOK_SECRET is unset, so every delivery is rejected.",
-        );
+        log.error("[amplifier] TYPEFULLY_WEBHOOK_SECRET is unset, so every delivery is rejected.");
         return false;
       }
       const timestamp = headers[TIMESTAMP_HEADER];

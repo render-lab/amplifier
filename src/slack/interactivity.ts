@@ -4,6 +4,7 @@ import { isFresh, timingSafeEquals } from "../http/signature.js";
 import { nestedId, nonEmptyString, record } from "../json.js";
 import { leadOf } from "../amplifier/lead.js";
 import { EDIT_ACTION_ID, REPOST_ACTION_ID } from "../amplifier/template.js";
+import * as log from "../log.js";
 import {
   decodeMeta,
   EDIT_CALLBACK_ID,
@@ -35,7 +36,7 @@ export function verifySlackSignature(
   nowMs: number,
 ): boolean {
   if (!secret) {
-    console.error("[amplifier] SLACK_SIGNING_SECRET is unset, so every Slack request is rejected.");
+    log.error("[amplifier] SLACK_SIGNING_SECRET is unset, so every Slack request is rejected.");
     return false;
   }
   const timestamp = headers[TIMESTAMP_HEADER];
@@ -102,7 +103,7 @@ export function parseRepostClick(payload: unknown): RepostClick | null {
   const noteKey = nonEmptyString(action["value"]);
   const responseUrl = nonEmptyString(p["response_url"]);
   if (!channel || !messageTs || !userId || !noteKey || !responseUrl) {
-    console.error("[amplifier] A Repost click was missing fields the repost task needs.");
+    log.error("[amplifier] A Repost click was missing fields the repost task needs.");
     return null;
   }
   return { channel, messageTs, userId, noteKey, responseUrl };
@@ -142,7 +143,7 @@ export function parseEditClick(payload: unknown): EditClick | null {
   const triggerId = nonEmptyString(p["trigger_id"]);
   const responseUrl = nonEmptyString(p["response_url"]);
   if (!channel || !messageTs || !noteKey || !triggerId || !responseUrl) {
-    console.error("[amplifier] An Edit click was missing fields the modal needs.");
+    log.error("[amplifier] An Edit click was missing fields the modal needs.");
     return null;
   }
 
@@ -170,7 +171,7 @@ export function parseEditSubmit(payload: unknown): EditSubmit | null {
 
   const meta = decodeMeta(view["private_metadata"]);
   if (!meta) {
-    console.error("[amplifier] An edit submission named no note amplifier could edit.");
+    log.error("[amplifier] An edit submission named no note amplifier could edit.");
     return null;
   }
 

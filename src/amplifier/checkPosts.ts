@@ -7,6 +7,7 @@ import { groupPosts } from "./group.js";
 import { announcedDraftIds, runToken } from "./seen.js";
 import { pendingForDraft, settleDeadlineMs, StillPublishingError } from "./settle.js";
 import { withinWindow } from "./window.js";
+import * as log from "../log.js";
 
 export type { NoteResult };
 
@@ -48,7 +49,7 @@ export async function checkPostsImpl(
 
   const recent = withinWindow(posts, nowMs, config.lookbackMinutes);
   if (posts.length >= config.limit && recent.length === 0) {
-    console.warn(
+    log.warn(
       `[amplifier] Typefully returned ${posts.length} posts, the requested limit, and none ` +
         `is inside the ${config.lookbackMinutes}-minute lookback. The response may be ` +
         `truncated to the oldest published drafts. Raise AMPLIFIER_LIMIT, up to ${MAX_LIMIT}.`,
@@ -78,7 +79,7 @@ export async function checkPostsImpl(
       if (nowMs < deadlineMs) {
         throw new StillPublishingError(input.draftId, pending, deadlineMs);
       }
-      console.warn(
+      log.warn(
         `[amplifier] The settle deadline passed for draft ${input.draftId}. Announcing it ` +
           `without ${pending.join(", ")}.`,
       );
