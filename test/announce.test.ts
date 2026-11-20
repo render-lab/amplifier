@@ -139,6 +139,21 @@ describe("announceGroups, the stored note", () => {
     expect(actions.elements[0].text.text).toBe("Repost to #amplify-wider");
   });
 
+  it("looks up the name once per run when the repost channel is an id", async () => {
+    const { ctx, calls } = taskCtx(
+      handlers({ "amplifier.channelName": () => ({ name: "amplify-wider" }) }),
+    );
+    const byId = { ...env, AMPLIFIER_REPOST_CHANNEL: "C0123ABCD" };
+    await announceGroups(ctx, [...crossPost, ...singlePost], loadConfig({}, byId), "run-1");
+
+    expect(calls.filter((c) => c.name === "amplifier.channelName")).toHaveLength(1);
+    const labels = posted(calls)
+      .flatMap((p) => p.blocks ?? [])
+      .filter((b: Record<string, unknown>) => b["type"] === "actions")
+      .map((b: { elements: { text: { text: string } }[] }) => b.elements[0]?.text.text);
+    expect(labels).toEqual(["Repost to #amplify-wider", "Repost to #amplify-wider"]);
+  });
+
   it("stores nothing and adds no button without a repost channel", async () => {
     const { ctx, calls } = taskCtx(handlers());
     await announceGroups(ctx, crossPost, loadConfig({}, env), "run-1");

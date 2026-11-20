@@ -1,6 +1,7 @@
 import type { SlackBlock } from "@render-lab/tasks-slack";
 import type { PostNoteInput } from "../slack/postNote.js";
-import { repostBlock, section } from "./template.js";
+import { channelMention } from "../slack/mrkdwn.js";
+import { repostBlock, repostLabel, section } from "./template.js";
 
 /**
  * Stand-in for the repost channel's name inside the reminder text.
@@ -8,13 +9,17 @@ import { repostBlock, section } from "./template.js";
  * The text is a setting and the channel is a different setting, so the two are
  * joined here rather than in the value somebody types into
  * AMPLIFIER_REMINDER_TEXT. An override that leaves the placeholder out still
- * posts; it just does not name the channel.
+ * posts; it just does not name the channel. A `#` before the placeholder is
+ * replaced with it, because the replacement brings its own.
  */
 export const CHANNEL_PLACEHOLDER = "{channel}";
 
+/** The placeholder and any `#` typed before it. */
+const PLACEHOLDER_PATTERN = /#?\{channel\}/g;
+
 /** The reminder's text. Override with AMPLIFIER_REMINDER_TEXT. */
 export const DEFAULT_REMINDER_TEXT =
-  `This post still needs to be shared in #${CHANNEL_PLACEHOLDER}. The first hour matters most, ` +
+  `This post still needs to be shared in ${CHANNEL_PLACEHOLDER}. The first hour matters most, ` +
   `so can the owner or another team member share it?`;
 
 export interface RemindOptions {
@@ -26,6 +31,8 @@ export interface RemindOptions {
   text: string;
   /** Channel the Repost button posts to, as the placeholder resolves to. */
   repostChannel: string;
+  /** Name the button shows when `repostChannel` is an id. */
+  repostChannelName?: string;
   /** Key Value key of the stored note, which the reminder's own button carries. */
   noteKey: string;
 }
@@ -43,8 +50,9 @@ export interface RemindOptions {
  * absent. `text` is the notification fallback.
  */
 export function renderReminder(opts: RemindOptions): PostNoteInput {
-  const text = opts.text.replaceAll(CHANNEL_PLACEHOLDER, opts.repostChannel);
-  const blocks: SlackBlock[] = [section(text), repostBlock(opts.repostChannel, opts.noteKey)];
+  const text = opts.text.replaceAll(PLACEHOLDER_PATTERN, channelMention(opts.repostChannel));
+  const label = repostLabel(opts.repostChannel, opts.repostChannelName);
+  const blocks: SlackBlock[] = [section(text), repostBlock(label, opts.noteKey)];
   return {
     text,
     blocks,

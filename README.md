@@ -150,6 +150,11 @@ source channel can click it. The note is posted again in the repost channel, as 
 rather than as the bot, and the source message gets an `AMPLIFIER_REPOST_EMOJI` reaction and
 a "Reposted by" reply.
 
+`AMPLIFIER_REPOST_CHANNEL` takes a channel name or a channel id. For an id, amplifier looks up
+the name with `conversations.info`, once per run, so the button shows `#name` and not the id.
+The lookup needs the `channels:read` bot scope. Without it, or for a private channel, the
+button reads **Repost**.
+
 The first click asks for a one-time authorization. Amplifier has no token for that person
 yet, so it answers privately with an authorize link. Approving it grants `chat:write` for
 that one person, and clicking Repost again does the repost. The token is stored in

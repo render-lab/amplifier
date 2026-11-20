@@ -1,5 +1,5 @@
 import type { PostMessageInput, SlackBlock, SlackJsonValue } from "@render-lab/tasks-slack";
-import { body } from "../slack/mrkdwn.js";
+import { body, isChannelId } from "../slack/mrkdwn.js";
 import { compareTime } from "../time.js";
 import { PLATFORM_NAMES, PLATFORM_ORDER, platformLabel } from "../typefully/platforms.js";
 import type { Platform, PlatformLink } from "../typefully/types.js";
@@ -42,6 +42,8 @@ export interface RenderNoteOptions {
 export interface RenderParentOptions extends RenderNoteOptions {
   /** Channel the Repost button posts to. Unset means the parent carries no button. */
   repostChannel?: string;
+  /** Name the button shows when `repostChannel` is an id. See `repostLabel`. */
+  repostChannelName?: string;
   /** Key Value key the button hands back, so the repost task can read the note. */
   noteKey?: string;
 }
@@ -128,17 +130,29 @@ export function sectionMrkdwn(block: SlackBlock | undefined): string | undefined
 }
 
 /**
+ * The Repost button's label.
+ *
+ * A button label is plain text, so Slack does not render `<#C0123>` in it. An
+ * id is replaced with the looked-up name, and with no name at all when the
+ * lookup failed.
+ */
+export function repostLabel(repostChannel: string, channelName?: string): string {
+  const name = channelName ?? (isChannelId(repostChannel) ? undefined : repostChannel);
+  return name ? `Repost to #${name}` : "Repost";
+}
+
+/**
  * The Repost button.
  *
  * `value` is the Key Value key of the stored note, so the receiver can hand the
  * repost task everything it needs to rebuild the thread without reading the
  * thread back from Slack.
  */
-function repostElement(repostChannel: string, noteKey: string): SlackJsonValue {
+function repostElement(label: string, noteKey: string): SlackJsonValue {
   return {
     type: "button",
     action_id: REPOST_ACTION_ID,
-    text: { type: "plain_text", text: `Repost to #${repostChannel}`, emoji: true },
+    text: { type: "plain_text", text: label, emoji: true },
     value: noteKey,
   };
 }
@@ -154,8 +168,8 @@ function editElement(noteKey: string): SlackJsonValue {
 }
 
 /** The reminder's actions block, which offers the repost and nothing else. */
-export function repostBlock(repostChannel: string, noteKey: string): SlackBlock {
-  return { type: "actions", elements: [repostElement(repostChannel, noteKey)] };
+export function repostBlock(label: string, noteKey: string): SlackBlock {
+  return { type: "actions", elements: [repostElement(label, noteKey)] };
 }
 
 /**
@@ -164,10 +178,10 @@ export function repostBlock(repostChannel: string, noteKey: string): SlackBlock 
  * Only a note gets Edit. The reminder is a reply carrying its own text, so an
  * Edit click there would rewrite the reminder.
  */
-export function noteActions(repostChannel: string, noteKey: string): SlackBlock {
+export function noteActions(label: string, noteKey: string): SlackBlock {
   return {
     type: "actions",
-    elements: [repostElement(repostChannel, noteKey), editElement(noteKey)],
+    elements: [repostElement(label, noteKey), editElement(noteKey)],
   };
 }
 
@@ -191,7 +205,7 @@ function noteParts(group: PostGroup, opts: RenderNoteOptions, lead: string): str
 function noteMessage(lead: string, parts: string[], opts: RenderParentOptions): PostMessageInput {
   const blocks: SlackBlock[] = [section(body(parts))];
   if (opts.repostChannel && opts.noteKey) {
-    blocks.push(noteActions(opts.repostChannel, opts.noteKey));
+    blocks.push(noteActions(repostLabel(opts.repostChannel, opts.repostChannelName), opts.noteKey));
   }
   return {
     text: lead,

@@ -98,6 +98,17 @@ describe("remindRepostImpl, an un-reposted note", () => {
     expect(section.text.text).not.toContain(CHANNEL_PLACEHOLDER);
   });
 
+  it("mentions a channel id and labels the button with its name", async () => {
+    const { ctx, calls, deps } = remindCtx({
+      "amplifier.channelName": () => ({ name: "amplify-wider" }),
+    });
+    await remindRepostImpl(ctx, input, { ...env, AMPLIFIER_REPOST_CHANNEL: "C0123ABCD" }, deps);
+
+    const [section, actions] = posted(calls)[0]?.blocks ?? [];
+    expect(section.text.text).toContain("shared in <#C0123ABCD>.");
+    expect(actions.elements[0].text.text).toBe("Repost to #amplify-wider");
+  });
+
   it("carries its own Repost button, holding the note's key", async () => {
     const { ctx, calls, deps } = remindCtx();
     await remindRepostImpl(ctx, input, env, deps);

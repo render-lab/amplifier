@@ -100,6 +100,15 @@ describe("repostImpl, the happy path", () => {
     expect(texts).toEqual(["Reposted to #amplify-wider."]);
   });
 
+  it("mentions a channel id in the confirmation, so Slack shows its name", async () => {
+    const { texts, fetchImpl } = collectReplies();
+    const { ctx } = taskCtx(handlers());
+    const byId = { ...env, AMPLIFIER_REPOST_CHANNEL: "C0123ABCD" };
+    await repostImpl(ctx, input, byId, { fetchImpl, now: () => NOW });
+
+    expect(texts).toEqual(["Reposted to <#C0123ABCD>."]);
+  });
+
   it("keeps the replies in display order, threaded under the new parent", async () => {
     const { fetchImpl } = collectReplies();
     const { ctx, calls } = taskCtx(handlers());

@@ -1,6 +1,7 @@
 import { task, type TaskContext } from "@renderinc/sdk/workflows";
 import { get as kvGet } from "@render-lab/tasks-render-kv";
 import { loadConfig } from "../config.js";
+import { channelMention } from "../slack/mrkdwn.js";
 import { respondEphemeral, type ResponseFetch } from "../slack/respond.js";
 import { updateNote } from "../slack/updateNote.js";
 import { withLead } from "./lead.js";
@@ -92,7 +93,7 @@ export async function editNoteImpl(
     reposted === null
       ? "Updated. Reposting your edited message."
       : `Updated here. This note was already reposted${
-          config.repostChannel ? ` to #${config.repostChannel}` : ""
+          config.repostChannel ? ` to ${channelMention(config.repostChannel)}` : ""
         }, and that copy is unchanged.`,
   );
   return { edited: true };

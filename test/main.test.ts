@@ -33,6 +33,7 @@ describe("task registration", () => {
         "typefully.listPublished",
         "llm.complete",
         "amplifier.postNote",
+        "amplifier.channelName",
         "kv.lock",
         "kv.unlock",
         "kv.get",

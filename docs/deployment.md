@@ -289,8 +289,9 @@ Pick the Slack channel the notes will go to. If the production channel is busy, 
 `slack-app-manifest.yaml` defines the app. At <https://api.slack.com/apps>, choose
 **Create New App > From a manifest > Continue**, pick the workspace, and paste the file as YAML. Click **Next > Create and Install**.
 
-The manifest requests `chat:write`, `reactions:write`, `users:read`, `users:read.email` and
-`im:write` for the bot, and `chat:write` for a user. `users:read.email` and `im:write` let
+The manifest requests `chat:write`, `reactions:write`, `channels:read`, `users:read`,
+`users:read.email` and `im:write` for the bot, and `chat:write` for a user. `channels:read`
+lets the Repost button show the channel's name when `AMPLIFIER_REPOST_CHANNEL` is an id. `users:read.email` and `im:write` let
 `amplifier.pingOwners` find an owner from their email and DM them, and Slack only grants
 `users:read.email` alongside `users:read`. Drop all three if you only want the announce path. To change the app later, edit the file and paste it into **App Manifest** on the
 app's settings page. A scope change requires a reinstall. Check the Bot User OAuth Token
@@ -346,7 +347,8 @@ host.
    this against the redirect on the authorize link character for character, so use https
    and no trailing slash.
 3. On the same page, check both scope lists against the manifest. **Bot Token Scopes** needs
-   `chat:write`, `reactions:write`, `users:read`, `users:read.email` and `im:write`. **User
+   `chat:write`, `reactions:write`, `channels:read`, `users:read`, `users:read.email` and
+   `im:write`. **User
    Token Scopes** needs `chat:write`, because a repost posts as the person who clicked. Click
    **Add an OAuth Scope** for any that is missing. Slack adds `users:read` for you when you
    pick `users:read.email`, and refuses the email scope without it. An app installed before
@@ -368,7 +370,8 @@ host.
      signing secret are hidden until you click **Show**. The client id and the signing
      secret go in both groups, with the same value in each.
    - `AMPLIFIER_REPOST_CHANNEL` is the channel reposts go to, which you pick. It is not
-     the channel the notes are posted in.
+     the channel the notes are posted in. Use the channel's name or its id. The id is on
+     the channel's **About** tab in Slack.
    - `AMPLIFIER_PUBLIC_URL` is `<receiver>`, the same URL you used in steps 1 and 2. The
      Workflow service builds the authorize link and has no external URL of its own.
 
@@ -391,6 +394,11 @@ first click. Four failures to tell apart:
   `reactions.add error: missing_scope` rather than failing the click. Add the scope in step
   3 and follow step 4. The reaction goes through `SLACK_RETRY`, so it spends about eighteen
   seconds retrying a failure that will never clear, which is why the confirmation is slow.
+
+- The button reads **Repost** with no channel name. `AMPLIFIER_REPOST_CHANNEL` is an id
+  and the bot token has no `channels:read`, so amplifier could not look up the name. The
+  Workflow log says `Slack gave no name for`. Add the scope in step 3 and follow step 4. A
+  private channel also shows no name, because the bot is not a member of it.
 
 To test against a local receiver, put a tunnel in front of it and use the tunnel's
 hostname in steps 1, 2 and 5. Slack has to reach the receiver from the internet.

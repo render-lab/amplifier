@@ -1,6 +1,7 @@
 import { task, type TaskContext } from "@renderinc/sdk/workflows";
 import { get as kvGet, set as kvSet } from "@render-lab/tasks-render-kv";
 import { loadConfig } from "../config.js";
+import { channelDisplayName } from "../slack/channelName.js";
 import { postNote } from "../slack/postNote.js";
 import { renderReminder } from "./remindTemplate.js";
 import { remindedKey, repostedKey } from "./reposted.js";
@@ -64,13 +65,14 @@ export async function remindRepostImpl(
     return { reminded: false, reason: "no-repost-channel" };
   }
 
-  const message = renderReminder({
+  const reminder = {
     channel: input.channel,
     threadTs: input.messageTs,
     text: config.reminderText,
     repostChannel: config.repostChannel,
     noteKey: input.noteKey,
-  });
+  };
+  const message = renderReminder(reminder);
 
   // Checked before the sleep, so a dry run answers now instead of holding the
   // run open for the whole delay to print one line.
@@ -90,7 +92,13 @@ export async function remindRepostImpl(
   if (reminded.value !== null) return { reminded: false, reason: "already-reminded" };
 
   await ctx.run(kvSet, { key, value: "reminded", ttlSeconds: config.seenTtlSeconds });
-  await ctx.run(postNote, message);
+  // Looked up after the markers, so a note that needs no reminder costs no
+  // Slack call. Only the button label uses the name.
+  const name = await channelDisplayName(ctx, config.repostChannel);
+  await ctx.run(
+    postNote,
+    name ? renderReminder({ ...reminder, repostChannelName: name }) : message,
+  );
   return { reminded: true };
 }
 

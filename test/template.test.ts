@@ -121,6 +121,29 @@ describe("renderParent", () => {
     expect(renderParent(crossPost).channel).toBeUndefined();
   });
 
+  it("labels the button with the looked-up name when the channel is an id", () => {
+    const parent = renderParent(crossPost, {
+      summary: "Faster.",
+      repostChannel: "C0123ABCD",
+      repostChannelName: "amplify-wider",
+      noteKey: "amplifier:note:1",
+    });
+    expect(actionsBlock(parent.blocks)).toMatchObject({
+      elements: [{ text: { text: "Repost to #amplify-wider" } }, { text: { text: "Edit" } }],
+    });
+  });
+
+  it("shows no raw id on the button when the name is unknown", () => {
+    const parent = renderParent(crossPost, {
+      summary: "Faster.",
+      repostChannel: "C0123ABCD",
+      noteKey: "amplifier:note:1",
+    });
+    expect(actionsBlock(parent.blocks)).toMatchObject({
+      elements: [{ text: { text: "Repost" } }, { text: { text: "Edit" } }],
+    });
+  });
+
   it("carries the Repost and Edit buttons with a channel and a note key", () => {
     const parent = renderParent(crossPost, {
       summary: "Faster.",

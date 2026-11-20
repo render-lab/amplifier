@@ -23,6 +23,7 @@ oauth_config:
     bot:
       - chat:write
       - reactions:write
+      - channels:read
       - users:read
       - users:read.email
       - im:write

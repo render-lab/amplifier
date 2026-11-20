@@ -6,9 +6,9 @@
 // amplifier.remindRepost and, transitively, every task they compose —
 // typefully.listPublished, notion.getPage, notion.findLaunches, llm.complete,
 // amplifier.postNote, amplifier.updateNote, amplifier.lookupUser,
-// amplifier.openDm, amplifier.messageLink, slack.addReaction, kv.lock,
-// kv.unlock, kv.get, kv.set, kv.delete — because each module calls task(...)
-// at load.
+// amplifier.openDm, amplifier.messageLink, amplifier.channelName,
+// slack.addReaction, kv.lock, kv.unlock, kv.get, kv.set, kv.delete — because
+// each module calls task(...) at load.
 // They all register into the one shared @renderinc/sdk TaskRegistry.
 import { task, type TaskContext } from "@renderinc/sdk/workflows";
 import "./amplifier/announcePost.js";

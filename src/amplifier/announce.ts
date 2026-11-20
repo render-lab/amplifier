@@ -1,6 +1,7 @@
 import type { TaskContext } from "@renderinc/sdk/workflows";
 import type { PostMessageInput } from "@render-lab/tasks-slack";
 import type { AmplifierConfig } from "../config.js";
+import { channelDisplayName } from "../slack/channelName.js";
 import { postNote } from "../slack/postNote.js";
 import { postReplies } from "../slack/thread.js";
 import { isSummary, summarizeGroup, type SummaryOutcome } from "../summary/summarize.js";
@@ -61,6 +62,12 @@ export async function announceGroups(
   const notes: NoteResult[] = [];
   let skipped = 0;
 
+  // Once per run, and not in a dry run, which may have no bot token.
+  const repostChannelName =
+    config.repostChannel && !config.dryRun && groups.length > 0
+      ? await channelDisplayName(ctx, config.repostChannel)
+      : undefined;
+
   for (const group of groups) {
     // Before the claim, not inside it. LLM_RETRY spends about 62 seconds of
     // backoff across 5 retries plus six call durations, and the in-flight lock
@@ -89,7 +96,13 @@ export async function announceGroups(
         ? opts.droppedFor.platforms
         : [];
 
-    const { parent, replies, platforms, key } = renderGroup(group, config, summary, dropped);
+    const { parent, replies, platforms, key } = renderGroup(
+      group,
+      config,
+      summary,
+      dropped,
+      repostChannelName,
+    );
 
     let delivered = false;
     let threadTs: string | undefined;
@@ -172,6 +185,7 @@ function renderGroup(
   config: AmplifierConfig,
   summary: SummaryOutcome,
   dropped: Platform[],
+  repostChannelName: string | undefined,
 ): RenderedNote {
   const noteOpts: RenderNoteOptions = {
     ...(config.slackChannel ? { channel: config.slackChannel } : {}),
@@ -183,7 +197,11 @@ function renderGroup(
   const replies = platforms.length > 1 ? renderChildren(group, noteOpts) : [];
   const key = noteKey(group.draftIds);
   const repostOpts = config.repostChannel
-    ? { repostChannel: config.repostChannel, noteKey: key }
+    ? {
+        repostChannel: config.repostChannel,
+        noteKey: key,
+        ...(repostChannelName ? { repostChannelName } : {}),
+      }
     : {};
   const parent =
     replies.length > 0
