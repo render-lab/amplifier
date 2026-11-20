@@ -1,5 +1,4 @@
-import { task, type TaskContext } from "@renderinc/sdk/workflows";
-import { SLACK_RETRY } from "@render-lab/tasks-slack";
+import { task, type Retry, type TaskContext } from "@renderinc/sdk/workflows";
 import { nonEmptyString, record } from "../json.js";
 import { callSlack } from "./api.js";
 import { isChannelId } from "./mrkdwn.js";
@@ -32,9 +31,17 @@ export async function channelNameImpl(
   return { name };
 }
 
+/**
+ * Retry policy for amplifier.channelName: one retry after 1s.
+ *
+ * Shorter than SLACK_RETRY, because the name only changes a label and the
+ * caller has a fallback. A long backoff would hold back the note it labels.
+ */
+const CHANNEL_NAME_RETRY: Retry = { maxRetries: 1, waitDurationMs: 1_000, backoffScaling: 1 };
+
 /** The name of a Slack channel, from its id. */
 export const channelName = task(
-  { name: "amplifier.channelName", retry: SLACK_RETRY },
+  { name: "amplifier.channelName", retry: CHANNEL_NAME_RETRY },
   channelNameImpl,
 );
 
@@ -55,9 +62,8 @@ export async function channelDisplayName(
     const result = await ctx.run(channelName, { channel });
     if ("name" in result) return result.name;
     log.error(
-      `[amplifier] Slack gave no name for ${channel}: ${result.error}. The Repost button ` +
-        `shows no channel name. A public channel needs the channels:read bot scope, and a ` +
-        `private channel also needs the bot as a member.`,
+      `[amplifier] Slack gave no name for ${channel}: ${result.error}. A public channel ` +
+        `needs the channels:read bot scope, and a private channel also needs the bot as a member.`,
     );
   } catch (err) {
     log.error(`[amplifier] Could not look up the name of ${channel}.`, err);
