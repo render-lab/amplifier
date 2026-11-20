@@ -107,10 +107,11 @@ export async function repostImpl(
     );
     return { reposted: false, reason: "no-repost-channel" };
   }
+  const mention = channelMention(repostChannel);
 
   /** The answer to a click on a note that already has its reposted marker. */
   const alreadyReposted = async (): Promise<RepostResult> => {
-    await reply(`Somebody already reposted this note to ${channelMention(repostChannel)}.`);
+    await reply(`Somebody already reposted this note to ${mention}.`);
     return { reposted: false, reason: "already-reposted" };
   };
 
@@ -155,7 +156,7 @@ export async function repostImpl(
     // and the lock.
     if (outcome.reason === "reposted") return alreadyReposted();
     await reply(
-      `This note is being reposted to ${channelMention(repostChannel)} right now. Check the channel in a ` +
+      `This note is being reposted to ${mention} right now. Check the channel in a ` +
         `few minutes, and click again if nothing landed.`,
     );
     return { reposted: false, reason: "repost-in-flight" };
@@ -179,7 +180,7 @@ export async function repostImpl(
     }
     await releaseClaim(ctx, outcome.claim);
     await reply(
-      `Join ${channelMention(repostChannel)} and click Repost again — Slack will not post you into a ` +
+      `Join ${mention} and click Repost again — Slack will not post you into a ` +
         `channel you are not in.`,
     );
     return { reposted: false, reason: "not-in-channel" };
@@ -193,7 +194,7 @@ export async function repostImpl(
   );
 
   await markSource(ctx, input, config.repostEmoji, config.seenTtlSeconds);
-  await reply(`Reposted to ${channelMention(repostChannel)}.`);
+  await reply(`Reposted to ${mention}.`);
   return { reposted: true, ...(threadTs ? { threadTs } : {}) };
 }
 

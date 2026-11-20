@@ -72,12 +72,11 @@ export async function remindRepostImpl(
     repostChannel: config.repostChannel,
     noteKey: input.noteKey,
   };
-  const message = renderReminder(reminder);
 
   // Checked before the sleep, so a dry run answers now instead of holding the
   // run open for the whole delay to print one line.
   if (config.dryRun) {
-    log.info(`[dry run] would remind:\n${message.text}`);
+    log.info(`[dry run] would remind:\n${renderReminder(reminder).text}`);
     return { reminded: false };
   }
 
@@ -97,7 +96,7 @@ export async function remindRepostImpl(
   const name = await channelDisplayName(ctx, config.repostChannel);
   await ctx.run(
     postNote,
-    name ? renderReminder({ ...reminder, repostChannelName: name }) : message,
+    renderReminder({ ...reminder, ...(name ? { repostChannelName: name } : {}) }),
   );
   return { reminded: true };
 }

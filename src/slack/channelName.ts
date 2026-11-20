@@ -1,5 +1,6 @@
 import { task, type TaskContext } from "@renderinc/sdk/workflows";
 import { SLACK_RETRY } from "@render-lab/tasks-slack";
+import { nonEmptyString, record } from "../json.js";
 import { callSlack } from "./api.js";
 import { isChannelId } from "./mrkdwn.js";
 import * as log from "../log.js";
@@ -26,9 +27,9 @@ export async function channelNameImpl(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<ChannelNameResult> {
   const body = await callSlack("conversations.info", { channel: input.channel }, { env });
-  const channel = body["channel"] as { name?: unknown } | undefined;
-  if (typeof channel?.name === "string" && channel.name !== "") return { name: channel.name };
-  return { error: body.error ?? "no_name_in_response" };
+  const name = nonEmptyString(record(body["channel"])?.["name"]);
+  if (!name) return { error: body.error ?? "no_name_in_response" };
+  return { name };
 }
 
 /** The name of a Slack channel, from its id. */
@@ -55,7 +56,8 @@ export async function channelDisplayName(
     if ("name" in result) return result.name;
     log.error(
       `[amplifier] Slack gave no name for ${channel}: ${result.error}. The Repost button ` +
-        `shows no channel name. Add the channels:read scope to the Slack app and reinstall it.`,
+        `shows no channel name. A public channel needs the channels:read bot scope, and a ` +
+        `private channel also needs the bot as a member.`,
     );
   } catch (err) {
     log.error(`[amplifier] Could not look up the name of ${channel}.`, err);
